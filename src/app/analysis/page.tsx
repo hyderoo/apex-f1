@@ -4,6 +4,7 @@ import { PageHeader } from "@/components/layout/page-header";
 import { PointsProgression } from "@/components/charts/points-progression";
 import { Badge } from "@/components/ui/badge";
 import { OfflineNote } from "@/components/pwa/offline-note";
+import { TeamIdentity } from "@/components/identity/team-identity";
 
 export const metadata = { title: "Race Analysis" };
 export const dynamic = "force-dynamic";
@@ -213,7 +214,7 @@ function TeammateH2H({ results, qualifying }: { results: H2HRaceRow[]; qualifyin
             const [[da, sa], [db, sb]] = t.drivers;
             return (
               <tr key={t.cid} className="timing-row">
-                <td className="px-4 py-1.5 text-sm">{t.name}</td>
+                <td className="px-4 py-1.5 text-sm"><TeamIdentity name={t.name} size="standard" /></td>
                 <td className="px-2 py-1.5 font-mono text-xs tnum">
                   <span className="font-semibold">{nameOf(da)} {sa.q}</span>
                   <span className="text-[var(--ink-3)]"> — {sb.q} {nameOf(db)}</span>

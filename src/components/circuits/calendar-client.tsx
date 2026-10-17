@@ -50,7 +50,7 @@ export function CalendarClient({
           value={q}
           onChange={(e) => setQ(e.target.value)}
           placeholder="Search Grand Prix, country or circuit"
-          className="h-9 w-64 border border-[var(--line)] bg-[var(--surface-2)] px-3 text-sm outline-none focus:border-[var(--line-2)]"
+          className="h-9 w-64 border border-[var(--line)] bg-[var(--surface-2)] px-3 text-sm outline-none focus:border-[var(--line-2)] sm:w-80"
         />
         <div className="flex border border-[var(--line)]">
           {(["all", "upcoming", "past"] as Filter[]).map((f) => (
@@ -94,7 +94,7 @@ export function CalendarClient({
                   )}
                 </div>
                 <div className="mt-0.5 text-xs text-[var(--ink-3)]">
-                  {m.circuitShortName} · {m.location}, {m.countryName}
+                  {m.circuitShortName === m.location ? m.location : `${m.circuitShortName} · ${m.location}`}, {m.countryName}
                 </div>
               </div>
               <div className="text-left md:text-right">

@@ -212,7 +212,7 @@ function TimingRow({
           />
           <DriverAvatar src={r.headshotUrl} acronym={r.acronym} teamColour={r.teamColour} size={22} />
           <span className="font-mono text-[13px] font-semibold" title={r.fullName}>{r.acronym}</span>
-          <span className="hidden items-center gap-1.5 text-[11px] text-[var(--ink-3)] lg:inline-flex">
+          <span className="hidden max-w-[9rem] items-center gap-1.5 truncate whitespace-nowrap text-[11px] text-[var(--ink-3)] lg:inline-flex" title={r.teamName}>
             {badgeFor(r.teamName) && <TeamBadge url={badgeFor(r.teamName)!.url} name={r.teamName} px={16}>{null}</TeamBadge>}
             {r.teamName}
           </span>
