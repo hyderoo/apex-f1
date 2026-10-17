@@ -56,7 +56,21 @@ preferences and reminders.
 
 `GET /api/cron/sync` (Authorization: `Bearer $CRON_SECRET`) upserts seasons,
 circuits, meetings, sessions and standings into Supabase and records a
-`data_sync_runs` row. `vercel.json` schedules it every 30 minutes.
+`data_sync_runs` row. `vercel.json` schedules it once per day (00:00 UTC),
+which fits the Vercel Hobby plan's daily-cron limit.
+
+The dashboard does not depend on this cron: every page reads OpenF1/Jolpica
+directly and labels freshness, so live viewing works even if the sync never
+runs. The cron only persists data into Supabase for fast repeat reads and
+historical snapshots.
+
+**On-demand sync**: trigger the same ingestion at any time (e.g. right after a
+session ends, or from an external scheduler such as cron-job.org or GitHub
+Actions on a tighter cadence than Vercel Hobby allows):
+
+```bash
+curl -H "Authorization: Bearer $CRON_SECRET" https://<your-deployment>/api/cron/sync
+```
 
 **Historical backfill**: run the cron endpoint once per deploy, or call the
 provider services from a script. Backfills are idempotent (natural-key upserts)
@@ -99,7 +113,9 @@ pnpm test:e2e     # Playwright (requires `pnpm playwright install chromium`)
 1. Push this repo to GitHub.
 2. In Vercel: Add New → Project → import the repo (defaults work; Next.js is auto-detected).
 3. Add environment variables from `.env.example` as needed, then **Redeploy**.
-4. Set `CRON_SECRET` and configure Vercel Cron auth so the scheduled sync is authorized.
+4. Set `CRON_SECRET`; Vercel Cron calls `/api/cron/sync` with it automatically
+   once daily (Hobby plan limit). For more frequent syncs, use an external
+   scheduler against the same endpoint (see Ingestion & sync).
 
 ## Known limitations
 
