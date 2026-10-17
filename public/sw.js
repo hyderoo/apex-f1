@@ -42,3 +42,34 @@ self.addEventListener("fetch", (event) => {
       }),
   );
 });
+
+/* ---- Push notifications (session reminders) ---- */
+
+self.addEventListener("push", (event) => {
+  if (!event.data) return;
+  let payload;
+  try { payload = event.data.json(); } catch { return; }
+  const title = typeof payload.title === "string" ? payload.title : "APEX F1";
+  event.waitUntil(
+    self.registration.showNotification(title, {
+      body: typeof payload.body === "string" ? payload.body : "",
+      icon: "/icons/icon-192.png",
+      badge: "/icons/icon-192.png",
+      tag: typeof payload.tag === "string" ? payload.tag : undefined,
+      data: { url: typeof payload.url === "string" ? payload.url : "/" },
+    }),
+  );
+});
+
+self.addEventListener("notificationclick", (event) => {
+  event.notification.close();
+  const url = (event.notification.data && event.notification.data.url) || "/";
+  event.waitUntil(
+    clients.matchAll({ type: "window", includeUncontrolled: true }).then((wins) => {
+      for (const w of wins) {
+        if ("focus" in w) { w.navigate(url); return w.focus(); }
+      }
+      return clients.openWindow(url);
+    }),
+  );
+});

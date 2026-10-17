@@ -4,6 +4,7 @@ import { useState } from "react";
 import { usePrefs } from "@/components/preferences";
 import { useToast } from "@/components/ui/toast";
 import { getSupabaseBrowser } from "@/lib/supabase/client";
+import { NotificationsSection } from "@/components/settings/notifications-section";
 
 const TIMEZONES = [
   "Asia/Jakarta", "Asia/Makassar", "Asia/Jayapura", "Asia/Singapore",
@@ -148,6 +149,8 @@ export default function SettingsPage() {
             </form>
           )}
         </section>
+
+        <NotificationsSection />
 
         <section className="panel p-4">
           <div className="micro-label mb-2">Data sources</div>

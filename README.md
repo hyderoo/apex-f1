@@ -49,7 +49,8 @@ See `.env.example`. Summary:
 - `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` — enable accounts, synced favorites/preferences.
 - `SUPABASE_SERVICE_ROLE_KEY` — server-only; used by the ingestion cron. **Never** exposed to the browser.
 - `OPENF1_API_KEY` — optional; enables true live data during sessions.
-- `CRON_SECRET` — protects `/api/cron/sync`.
+- `CRON_SECRET` — protects `/api/cron/sync` and `/api/push/dispatch`.
+- `NEXT_PUBLIC_VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT` — Web Push session notifications (see below).
 - `NEXT_PUBLIC_SITE_URL` — used for share links / ICS metadata.
 
 Configuration is validated with Zod at startup (`src/lib/env.ts`).
@@ -63,7 +64,31 @@ Configuration is validated with Zod at startup (`src/lib/env.ts`).
 
 Row Level Security: public motorsport data is read-only for everyone; only the
 service role writes it. Users can only read/write their own profile, favorites,
-preferences and reminders.
+preferences and reminders. Push subscription tables have no client policies at
+all — only the service role touches them.
+
+### Session notifications (Web Push)
+
+Users can subscribe to a push notification 15/30/60 minutes before race,
+sprint, qualifying and practice sessions (Settings → Session notifications),
+optionally restricted to their favourite circuits.
+
+1. Generate a VAPID keypair: `npx web-push generate-vapid-keys`.
+2. Set `NEXT_PUBLIC_VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY` and
+   `VAPID_SUBJECT` (a `mailto:` or site URL) in Vercel / `.env.local`.
+   The private key never leaves the server.
+3. Run `supabase/migrations/0002_push_subscriptions.sql` in the Supabase SQL
+   editor (adds `push_subscriptions` + `push_log`, RLS deny-all for clients).
+4. Add the repo secret `CRON_SECRET` (same value as the Vercel env var) so the
+   `push-dispatch` GitHub Actions workflow can call `/api/push/dispatch`
+   every 15 minutes. Vercel Hobby cron is daily-only, too coarse for
+   pre-session alerts.
+
+Without the VAPID keys the Settings section shows an honest "not configured"
+state and no push code runs. Dead endpoints (404/410 from the push service)
+are deleted automatically. Delivery is best-effort: GitHub's scheduler can
+delay runs, so a notification may arrive late or be skipped; the notification
+always states the actual session start time.
 
 ### Ingestion & sync
 
