@@ -3,10 +3,11 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import type { DataStatus, Driver, Meeting, Session, TeamRadioClip } from "@/lib/domain/types";
-import { buildClipList, teamOptions } from "@/lib/radio";
+import { buildClipList, groupClipsByDriver, teamOptions } from "@/lib/radio";
 import { Skeleton } from "@/components/ui/skeleton";
 import { DataStatusBadge } from "@/components/ui/badge";
 import { CopyLinkButton } from "@/components/ui/copy-link";
+import { RadioPlayer } from "@/components/radio/radio-player";
 
 interface RadioResponse {
   drivers: Driver[];
@@ -56,8 +57,7 @@ export function RadioExplorer({
     (driverNumber == null || c.driverNumber === driverNumber) &&
     (!team || c.teamName === team),
   );
-
-  const timeOf = (iso: string) => `${iso.slice(11, 19)} UTC`;
+  const groups = groupClipsByDriver(clips, drivers);
 
   return (
     <div className="px-4 py-4 md:px-6">
@@ -138,28 +138,12 @@ export function RadioExplorer({
               selection of communications, and some sessions have none.
             </div>
           )}
-          <ul className="flex flex-col gap-px bg-[var(--line)]">
-            {clips.map((c, i) => (
-              <li key={`${c.recordingUrl}-${i}`} className="panel flex flex-wrap items-center gap-3 px-4 py-2.5">
-                <span
-                  className="w-14 shrink-0 border-l-2 pl-2 font-mono text-xs font-bold"
-                  style={{ borderLeftColor: `#${c.teamColour}` }}
-                  title={c.teamName}
-                >
-                  {c.acronym}
-                </span>
-                <span className="w-20 shrink-0 font-mono text-[11px] tnum text-[var(--ink-3)]">{timeOf(c.date)}</span>
-                {/* Audio streams from the provider-supplied F1 livetiming URL */}
-                <audio controls preload="none" src={c.recordingUrl} className="h-8 min-w-0 flex-1" />
-              </li>
-            ))}
-          </ul>
+          <RadioPlayer groups={groups} />
           <p className="mt-3 text-[10px] leading-snug text-[var(--ink-3)]">
             Clips stream directly from the F1 livetiming CDN at the URLs OpenF1
             supplies; some networks or regions may block them. OpenF1 includes
             only a selection of radio communications, not the complete record.
-            Timestamps are UTC. The provider publishes no transcripts, so none
-            are shown — a machine transcription feature does not exist in this app.
+            Timestamps are UTC. The provider publishes no transcripts, so none are shown.
           </p>
         </div>
       )}

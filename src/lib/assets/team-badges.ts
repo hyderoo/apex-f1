@@ -22,6 +22,32 @@ export const TEAM_BADGES: Record<string, { url: string; sourceName: string }> = 
   "Williams":        { url: "https://r2.thesportsdb.com/images/media/team/badge/fp1cil1740776050.png", sourceName: "Williams Racing" },
 };
 
+/**
+ * Jolpica constructor names differ from OpenF1 team names (e.g. "Red Bull",
+ * "RB F1 Team", "Alpine F1 Team", "Cadillac F1 Team"). Map every known
+ * variant to the canonical OpenF1 key above. Verified against the live
+ * Jolpica 2026 constructor standings on 2026-10-18.
+ */
+const TEAM_NAME_ALIASES: Record<string, string> = {
+  "red bull": "Red Bull Racing",
+  "rb f1 team": "Racing Bulls",
+  "rb": "Racing Bulls",
+  "visa cash app rb": "Racing Bulls",
+  "alpine f1 team": "Alpine",
+  "cadillac f1 team": "Cadillac",
+  "haas": "Haas F1 Team",
+  "sauber": "Audi",
+  "kick sauber": "Audi",
+  "stake f1 team": "Audi",
+};
+
+function normalize(name: string): string {
+  return name.toLowerCase().replace(/[^a-z0-9 ]/g, " ").replace(/\s+/g, " ").trim();
+}
+
 export function teamBadge(teamName: string) {
-  return TEAM_BADGES[teamName] ?? null;
+  const exact = TEAM_BADGES[teamName];
+  if (exact) return exact;
+  const alias = TEAM_NAME_ALIASES[normalize(teamName)];
+  return alias ? TEAM_BADGES[alias] ?? null : null;
 }
