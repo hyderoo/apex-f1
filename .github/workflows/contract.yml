@@ -1,0 +1,24 @@
+name: Provider contract tests
+
+# Live checks against OpenF1 and Jolpica for schema drift in the fields the
+# app actually reads. Daily schedule + manual trigger only — deliberately
+# NOT gated on push/PR, because these depend on third-party availability.
+
+on:
+  schedule:
+    - cron: "17 3 * * *" # daily, off-peak
+  workflow_dispatch:
+
+jobs:
+  contract:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm test:contract

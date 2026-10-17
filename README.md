@@ -121,7 +121,8 @@ Design docs: [docs/DESIGN.md](docs/DESIGN.md).
 ## Testing
 
 ```bash
-pnpm test         # unit tests (vitest)
+pnpm test         # unit tests (vitest, offline)
+pnpm test:contract # live API contract tests (OpenF1 + Jolpica; needs network)
 pnpm typecheck    # strict TypeScript
 pnpm lint
 pnpm build        # production build
@@ -139,9 +140,9 @@ Latest local verification on `main`:
 
 | Suite | Result |
 | --- | --- |
-| ESLint | clean, 0 warnings |
+| ESLint | 0 errors (1 pre-existing exhaustive-deps warning) |
 | `tsc --noEmit` (strict) | clean |
-| vitest | 53/53 passed |
+| vitest | 64/64 passed |
 | `pnpm build` | succeeded |
 | Playwright e2e | 10/10 passed (Chromium) |
 
@@ -149,6 +150,26 @@ The e2e suite covers the critical flows: dashboard render, season calendar,
 standings, driver and team pages with image fallbacks, telemetry lab,
 strategy, live/historical/demo labelling, the search palette, favorites, and
 the app running without optional provider credentials.
+
+### Provider contract tests (schema drift)
+
+`tests/contract/` runs against the **live** OpenF1 and Jolpica APIs and
+asserts every field the app actually reads — key presence and primitive
+type, per endpoint (15 OpenF1 endpoints + standings, schedule and results
+from Jolpica). If a provider renames, removes or retypes a field, this
+suite fails before users see broken panels.
+
+```bash
+pnpm test:contract
+```
+
+[GitHub Actions](.github/workflows/contract.yml) runs it daily and on
+demand (`workflow_dispatch`). It is deliberately **not** gated on push/PR:
+it depends on third-party availability and rate limits, so a provider
+outage should not block shipping unrelated work. Empty-coverage endpoints
+(pit stops, overtakes, radio for sessions that have none) are asserted as
+"array, shape-checked when rows exist" — the contract is the schema, not
+data volume.
 
 ## Deployment (Vercel)
 
