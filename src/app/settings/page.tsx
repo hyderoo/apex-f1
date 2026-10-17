@@ -17,6 +17,8 @@ export default function SettingsPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [mode, setMode] = useState<"signin" | "signup">("signin");
+  const [busy, setBusy] = useState(false);
+  const [accountMsg, setAccountMsg] = useState<{ kind: "ok" | "err"; text: string } | null>(null);
   const sb = getSupabaseBrowser();
 
   return (
@@ -77,12 +79,50 @@ export default function SettingsPage() {
               className="space-y-2"
               onSubmit={async (e) => {
                 e.preventDefault();
-                const fn = mode === "signin" ? sb.auth.signInWithPassword : sb.auth.signUp;
-                const { error } = await fn({ email, password });
-                if (error) toast(error.message, "error");
-                else toast(mode === "signin" ? "Signed in" : "Account created — check your email if confirmation is enabled", "success");
+                setBusy(true);
+                setAccountMsg(null);
+                try {
+                  if (mode === "signin") {
+                    const { error } = await sb.auth.signInWithPassword({ email, password });
+                    if (error) {
+                      setAccountMsg({
+                        kind: "err",
+                        text: error.message === "Email not confirmed"
+                          ? "This account exists but its email is not confirmed yet. Open the confirmation link Supabase sent (check spam), then sign in."
+                          : error.message,
+                      });
+                    }
+                    // success flips the panel via the auth state listener
+                  } else {
+                    const { data, error } = await sb.auth.signUp({ email, password });
+                    if (error) {
+                      setAccountMsg({ kind: "err", text: error.message });
+                    } else if (data.session) {
+                      setAccountMsg({ kind: "ok", text: "Account created and signed in." });
+                    } else {
+                      setAccountMsg({
+                        kind: "ok",
+                        text: `Account created for ${email}. Supabase emailed a confirmation link — open it to activate the account, then sign in. Until then, signing in will say "Email not confirmed". Check spam if it does not arrive within a few minutes.`,
+                      });
+                    }
+                  }
+                } finally {
+                  setBusy(false);
+                }
               }}
             >
+              {accountMsg && (
+                <p
+                  role="status"
+                  className={`border px-3 py-2 text-xs leading-snug ${
+                    accountMsg.kind === "err"
+                      ? "border-[var(--accent)]/50 text-[var(--accent)]"
+                      : "border-[var(--ok)]/50 text-[var(--ok)]"
+                  }`}
+                >
+                  {accountMsg.text}
+                </p>
+              )}
               <input
                 type="email" required value={email} onChange={(e) => setEmail(e.target.value)}
                 placeholder="Email"
@@ -94,8 +134,8 @@ export default function SettingsPage() {
                 className="h-9 w-full border border-[var(--line)] bg-[var(--surface-2)] px-3 text-sm"
               />
               <div className="flex items-center gap-2">
-                <button type="submit" className="bg-[var(--accent)] px-4 py-1.5 text-xs font-semibold text-white">
-                  {mode === "signin" ? "Sign in" : "Create account"}
+                <button type="submit" disabled={busy} className="bg-[var(--accent)] px-4 py-1.5 text-xs font-semibold text-white disabled:opacity-50">
+                  {busy ? "Working…" : mode === "signin" ? "Sign in" : "Create account"}
                 </button>
                 <button
                   type="button"
