@@ -7,6 +7,7 @@ import { compoundColor, formatDuration } from "@/lib/utils/format";
 import { Skeleton } from "@/components/ui/skeleton";
 import { DataStatusBadge } from "@/components/ui/badge";
 import { Term } from "@/components/ui/tooltip-term";
+import { DriverAvatar } from "@/components/identity/driver-identity";
 
 interface StrategyResponse {
   drivers: Driver[];
@@ -67,7 +68,10 @@ export function StrategyClient({ races }: { races: { sessionKey: number; label: 
                   const pits = data.pitStops.filter((p) => p.driverNumber === d.driverNumber);
                   return (
                     <div key={d.driverNumber} className="flex items-center gap-2 border-b border-[var(--line)] py-1.5">
-                      <div className="w-12 shrink-0 font-mono text-xs font-semibold">{d.acronym}</div>
+                      <div className="flex w-16 shrink-0 items-center gap-1.5 font-mono text-xs font-semibold">
+                        <DriverAvatar src={d.headshotUrl} acronym={d.acronym} teamColour={d.teamColour} size={18} />
+                        {d.acronym}
+                      </div>
                       <div className="relative h-5 flex-1">
                         {stints.map((s) => {
                           const width = ((s.lapEnd - s.lapStart + 1) / data.lapCount) * 100;
