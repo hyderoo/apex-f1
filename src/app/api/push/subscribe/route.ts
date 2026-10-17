@@ -17,16 +17,16 @@ const bodySchema = z.object({
 
 /** Create or replace a push subscription (keyed by endpoint). */
 export async function POST(req: NextRequest) {
+  const parsed = bodySchema.safeParse(await req.json().catch(() => null));
+  if (!parsed.success) {
+    return NextResponse.json({ error: "invalid body", detail: parsed.error.issues }, { status: 400 });
+  }
   const sb = getSupabaseServiceRole();
   if (!sb) {
     return NextResponse.json(
       { error: "supabase not configured", detail: "Push subscriptions need SUPABASE_SERVICE_ROLE_KEY and migration 0002." },
       { status: 503 },
     );
-  }
-  const parsed = bodySchema.safeParse(await req.json().catch(() => null));
-  if (!parsed.success) {
-    return NextResponse.json({ error: "invalid body", detail: parsed.error.issues }, { status: 400 });
   }
   const b = parsed.data;
   const { error } = await sb.from("push_subscriptions").upsert(
@@ -48,11 +48,11 @@ export async function POST(req: NextRequest) {
 
 /** Remove a subscription. The endpoint is the (unguessable) bearer key. */
 export async function DELETE(req: NextRequest) {
-  const sb = getSupabaseServiceRole();
-  if (!sb) return NextResponse.json({ error: "supabase not configured" }, { status: 503 });
   const parsed = z.object({ endpoint: z.string().url().max(2000) })
     .safeParse(await req.json().catch(() => null));
   if (!parsed.success) return NextResponse.json({ error: "invalid body" }, { status: 400 });
+  const sb = getSupabaseServiceRole();
+  if (!sb) return NextResponse.json({ error: "supabase not configured" }, { status: 503 });
   const { error } = await sb.from("push_subscriptions").delete().eq("endpoint", parsed.data.endpoint);
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
   return NextResponse.json({ ok: true });
