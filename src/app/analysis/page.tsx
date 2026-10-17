@@ -3,6 +3,7 @@ import { SEASON_YEAR } from "@/lib/f1/season";
 import { PageHeader } from "@/components/layout/page-header";
 import { PointsProgression } from "@/components/charts/points-progression";
 import { Badge } from "@/components/ui/badge";
+import { OfflineNote } from "@/components/pwa/offline-note";
 
 export const metadata = { title: "Race Analysis" };
 export const dynamic = "force-dynamic";
@@ -22,6 +23,7 @@ export default async function AnalysisPage() {
         description="Points progression and round results from the Jolpica results API. Classifications may be provisional until officially confirmed."
         status={results?.provenance.status ?? "unavailable"}
       />
+      <div className="px-4 pt-4 md:px-6"><OfflineNote /></div>
       {latest.length > 0 && (
         <section className="panel mb-px">
           <div className="border-b border-[var(--line)] px-4 py-2.5">
