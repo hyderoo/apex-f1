@@ -2,6 +2,7 @@ import { getCalendar } from "@/lib/f1/season";
 import { PageHeader } from "@/components/layout/page-header";
 import { FlagImage } from "@/components/identity/country-flag";
 import { CircuitImage } from "@/components/identity/circuit-image";
+import { formatGmtOffset } from "@/lib/utils/format";
 
 export const metadata = { title: "Circuits" };
 export const dynamic = "force-dynamic";
@@ -31,7 +32,7 @@ export default async function CircuitsPage() {
               {m.location}, {m.countryName}
             </div>
             <div className="mt-2 text-[11px] text-[var(--ink-3)]">
-              {m.circuitType ?? "Circuit"} · GMT{m.gmtOffset.replace(/:\d{2}$/, "")}
+              {m.circuitType ?? "Circuit"} · {formatGmtOffset(m.gmtOffset)}
             </div>
           </a>
         ))}

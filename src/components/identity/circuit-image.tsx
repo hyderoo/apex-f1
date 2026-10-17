@@ -22,8 +22,20 @@ export function CircuitImage({
       : "border-[var(--line)] bg-[rgba(255,255,255,0.14)] p-1",
     className,
   );
+  const unavailable = !src || failed;
   return (
-    <span aria-hidden={!src || failed} className={plate} style={{ width, height }}>
+    <span
+      role={unavailable ? "img" : undefined}
+      aria-label={unavailable ? `${label} track outline unavailable from the data provider` : undefined}
+      title={unavailable ? `${label} — track outline unavailable from provider` : undefined}
+      className={plate}
+      style={{ width, height }}
+    >
+      {unavailable && (
+        <span className="font-mono text-[9px] font-bold tracking-widest text-[var(--ink-3)]">
+          {label.slice(0, 3).toUpperCase()}
+        </span>
+      )}
       {src && !failed && (
         // eslint-disable-next-line @next/next/no-img-element -- provider-supplied circuit outline
         <img

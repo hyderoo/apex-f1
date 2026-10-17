@@ -65,3 +65,13 @@ export function compoundColor(compound: string | null | undefined): string {
   if (!compound) return COMPOUND_COLORS.UNKNOWN;
   return COMPOUND_COLORS[compound.toUpperCase()] ?? COMPOUND_COLORS.UNKNOWN;
 }
+
+/** Format an OpenF1 gmt_offset ("+02:00" or "02:00:00") as a compact label ("GMT+2", "GMT-8", "GMT+5:30"). */
+export function formatGmtOffset(offset: string | null | undefined): string {
+  const m = (offset ?? "").match(/^\s*([+-]?)(\d{1,2}):(\d{2})/);
+  if (!m) return "GMT";
+  const sign = m[1] === "-" ? "-" : "+";
+  const h = parseInt(m[2], 10);
+  const min = parseInt(m[3], 10);
+  return `GMT${sign}${h}${min ? `:${String(min).padStart(2, "0")}` : ""}`;
+}
