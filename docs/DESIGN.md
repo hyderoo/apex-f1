@@ -229,7 +229,7 @@ session, an explicit notice replaces the map — never a fake outline.
 
 - **Unit (vitest)**: leaderboard assembly, timezone conversion, session
   status, lap-time formatting, telemetry join/delta/downsampling, track
-  projection, retry/staleness helpers. Current suite: 48 tests.
+  projection, retry/staleness helpers. Current suite: 53 tests.
 - **E2E (Playwright)**: dashboard load, calendar navigation, session open,
   driver profile, telemetry lap selection, demo-mode labeling, image
   fallbacks, labelling and credential-free startup. Current suite: 10 specs.

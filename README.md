@@ -141,7 +141,7 @@ Latest local verification on `main`:
 | --- | --- |
 | ESLint | clean, 0 warnings |
 | `tsc --noEmit` (strict) | clean |
-| vitest | 48/48 passed |
+| vitest | 53/53 passed |
 | `pnpm build` | succeeded |
 | Playwright e2e | 10/10 passed (Chromium) |
 
@@ -174,3 +174,14 @@ the app running without optional provider credentials.
   inferred events or editorialising.
 - The Data Health page (`/health`) reports live probe results (OpenF1,
   Jolpica, Supabase) and configuration state; raw JSON at `/api/health`.
+- Corner numbers on the circuit map are derived from recorded GPS curvature
+  and are approximate; sector boundaries come from recorded sector times.
+  Both appear only when the underlying recorded data is reliable enough.
+- Tyre degradation shows recorded lap times only — no fitted trend and no
+  prediction; pit-in/pit-out laps are excluded and that is stated.
+- Teammate head-to-head scores are computed from recorded classifications
+  only, with the scoring rules stated under the table.
+- A service worker caches the Race Analysis page so the latest results stay
+  readable offline; the page says when it is showing the cached copy.
+- Telemetry and Strategy selections are encoded in the URL, so any driver /
+  GP / lap view is shareable as a plain link.
