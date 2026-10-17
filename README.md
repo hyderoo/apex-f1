@@ -1,36 +1,112 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# APEX F1 — Every Lap. Every Detail. Live.
 
-## Getting Started
+A live Formula 1 intelligence dashboard for the **2026 FIA Formula One World Championship**.
+Timing tower, telemetry lab, tyre strategy, race control, weather, standings and
+season calendar — built on real, attributable data with every panel labelled by
+its provenance: **LIVE · DELAYED · HISTORICAL · DEMO DATA · UNAVAILABLE**.
 
-First, run the development server:
+## Data sources & honesty model
+
+| Source | Used for | Access |
+| --- | --- | --- |
+| [OpenF1](https://openf1.org) | meetings, sessions, drivers, laps, stints, pits, positions, intervals, car telemetry, GPS traces, weather, race control | Historical data (2023+) is free without a key. **True live data requires a paid OpenF1 subscription** (`OPENF1_API_KEY`). Without it, in-progress sessions are labelled DELAYED. |
+| [Jolpica F1 API](https://api.jolpi.ca) (Ergast-compatible) | official-style schedule, race results, qualifying, driver/constructor standings | Free, rate-limited. |
+| Bundled snapshot | Demo mode fallback (real recorded data from the 2026 Singapore GP, captured 2026-10-17) | Ships with the repo, clearly labelled DEMO DATA. |
+
+The app never invents timing, telemetry, results or session status. Where a
+provider lacks a capability, the UI says so instead of faking it. Distances on
+telemetry charts are documented approximations derived from recorded GPS points
+(`src/lib/telemetry/lap.ts`). Brake is a boolean pedal signal, not pressure.
+
+## Quick start
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
+pnpm install
+cp .env.example .env.local   # everything is optional — the app runs without it
 pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Without any credentials the app serves real historical data from OpenF1 and
+Jolpica, and falls back to the bundled snapshot in labelled demo mode.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### Environment variables
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+See `.env.example`. Summary:
 
-## Learn More
+- `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` — enable accounts, synced favorites/preferences.
+- `SUPABASE_SERVICE_ROLE_KEY` — server-only; used by the ingestion cron. **Never** exposed to the browser.
+- `OPENF1_API_KEY` — optional; enables true live data during sessions.
+- `CRON_SECRET` — protects `/api/cron/sync`.
+- `NEXT_PUBLIC_SITE_URL` — used for share links / ICS metadata.
 
-To learn more about Next.js, take a look at the following resources:
+Configuration is validated with Zod at startup (`src/lib/env.ts`).
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### Supabase setup
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+1. Create a project at supabase.com.
+2. Run the migration: `supabase db push` or paste `supabase/migrations/0001_init.sql` into the SQL editor.
+3. Copy the URL + anon key into `.env.local` (and Vercel env vars for deploys).
+4. The service-role key goes into `SUPABASE_SERVICE_ROLE_KEY` (server only).
 
-## Deploy on Vercel
+Row Level Security: public motorsport data is read-only for everyone; only the
+service role writes it. Users can only read/write their own profile, favorites,
+preferences and reminders.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### Ingestion & sync
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+`GET /api/cron/sync` (Authorization: `Bearer $CRON_SECRET`) upserts seasons,
+circuits, meetings, sessions and standings into Supabase and records a
+`data_sync_runs` row. `vercel.json` schedules it every 30 minutes.
+
+**Historical backfill**: run the cron endpoint once per deploy, or call the
+provider services from a script. Backfills are idempotent (natural-key upserts)
+and resumable; high-frequency telemetry is not bulk-archived by default — see
+the schema comments for the retention rationale.
+
+## Architecture
+
+```
+app/                Next.js App Router pages + API routes
+  api/              leaderboard, weather, race-control, standings, telemetry,
+                    strategy, ics, health, search-index, cron/sync, analysis
+components/         layout, dashboard, timing, telemetry, charts, drivers, ui
+lib/
+  domain/           shared TypeScript models + provenance envelope
+  providers/        F1DataProvider interface; openf1, jolpica, demo
+  f1/               season/calendar services, leaderboard assembly
+  telemetry/        lap windows, GPS distance, telemetry join, delta, track fit
+  supabase/         browser/server/service-role clients, middleware
+  cache/            fetch with timeout, retry + jitter, rate limiter
+supabase/migrations PostgreSQL schema + RLS
+tests/unit          vitest suite
+docs/               design documentation (user stories, diagrams, wireframes)
+```
+
+Design docs: [docs/DESIGN.md](docs/DESIGN.md).
+
+## Testing
+
+```bash
+pnpm test         # unit tests (vitest)
+pnpm typecheck    # strict TypeScript
+pnpm lint
+pnpm build        # production build
+pnpm test:e2e     # Playwright (requires `pnpm playwright install chromium`)
+```
+
+## Deployment (Vercel)
+
+1. Push this repo to GitHub.
+2. In Vercel: Add New → Project → import the repo (defaults work; Next.js is auto-detected).
+3. Add environment variables from `.env.example` as needed, then **Redeploy**.
+4. Set `CRON_SECRET` and configure Vercel Cron auth so the scheduled sync is authorized.
+
+## Known limitations
+
+- True live (real-time) timing requires a paid OpenF1 subscription; otherwise
+  in-progress sessions poll the free tier and are labelled DELAYED.
+- Pre-2026 historical seasons are not in scope.
+- Driver headshots link to formula1.com media URLs provided by OpenF1; missing
+  images render a monogram fallback.
+- Race replay reconstructs motion by interpolating between recorded GPS points
+  and is labelled as such; it never fabricates positions.
