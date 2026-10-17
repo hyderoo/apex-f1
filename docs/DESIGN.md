@@ -245,3 +245,21 @@ session, an explicit notice replaces the map — never a fake outline.
 | Demo mode | Bundled real snapshot | Works offline for reviewers; always labelled |
 | Auth | Optional Supabase email auth | Anonymous-first product principle |
 | Package manager | pnpm | Per project spec |
+
+
+## Data sources
+
+OpenF1 endpoints used: meetings, sessions, drivers, laps, stints, pit,
+position, intervals, car_data, location, weather, race_control,
+session_result, starting_grid, overtakes, team_radio. Notes:
+- `starting_grid` (beta) has no 2026 rows; race grids fall back to the
+  qualifying classification and are labelled "from qualifying".
+- `session_result` positions can be non-numeric ("RT"); they are kept as
+  unknown rather than coerced. Qualifying durations/gaps arrive as
+  per-segment arrays (Q1/Q2/Q3, nullable) and are reduced to the best time.
+- `car_data` and `location` are fetched on demand, windowed per lap/driver —
+  never bulk-persisted to Supabase (volume vs. free-tier rate limits).
+- OpenF1 "no data" arrives as either 200 or 404 with
+  `{"detail":"No results found."}`; both map to an honest empty state.
+- Championship standings come from Jolpica (more reliable history) rather
+  than OpenF1's beta championship endpoints.

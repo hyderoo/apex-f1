@@ -1,17 +1,18 @@
 import { z } from "zod";
 import type {
-  CarDataSample, Driver, Envelope, IntervalPoint, Lap, LocationPoint,
-  Meeting, PitStop, PositionPoint, RaceControlMessage, Session, SessionStatus,
-  Stint, WeatherObservation,
+  CarDataSample, Driver, Envelope, GridSlot, IntervalPoint, Lap, LocationPoint,
+  Meeting, Overtake, PitStop, PositionPoint, RaceControlMessage, Session, SessionResultEntry,
+  SessionStatus, Stint, TeamRadioClip, WeatherObservation,
 } from "@/lib/domain/types";
-import { fetchJson, RateLimiter } from "@/lib/cache/http";
+import { fetchJson, HttpError, RateLimiter } from "@/lib/cache/http";
 import type {
   F1DataProvider, LapQuery, ProviderCapabilities, SessionQuery, TelemetryQuery,
 } from "../types";
 import {
   openF1CarDataSchema, openF1DriverSchema, openF1IntervalSchema, openF1LapSchema,
   openF1LocationSchema, openF1MeetingSchema, openF1PitSchema, openF1PositionSchema,
-  openF1RaceControlSchema, openF1SessionSchema, openF1StintSchema, openF1WeatherSchema,
+  openF1OvertakeSchema, openF1RaceControlSchema, openF1SessionResultSchema, openF1SessionSchema,
+  openF1StartingGridSchema, openF1StintSchema, openF1TeamRadioSchema, openF1WeatherSchema,
 } from "./schemas";
 
 const BASE = "https://api.openf1.org/v1";
@@ -28,6 +29,15 @@ export function sessionStatus(s: { date_start: string | null; date_end: string |
   if (end && now > end) return "finished";
   return "live";
 }
+
+const num = (v: unknown): number | null => {
+  if (typeof v === "number") return v;
+  if (Array.isArray(v)) {
+    const nums = v.filter((x): x is number => typeof x === "number");
+    return nums.length ? Math.min(...nums) : null;
+  }
+  return null;
+};
 
 export class OpenF1Provider implements F1DataProvider {
   readonly id = "openf1";
@@ -58,12 +68,23 @@ export class OpenF1Provider implements F1DataProvider {
     const qs = new URLSearchParams();
     for (const [k, v] of Object.entries(params)) qs.set(k, String(v));
     const url = `${BASE}/${path}?${qs.toString()}`;
-    const raw = await fetchJson<unknown>(url, {
-      rateLimiter: limiter,
-      retries: 2,
-      revalidate: opts.revalidate ?? false,
-      headers: this.headers(),
-    });
+    let raw: unknown;
+    try {
+      raw = await fetchJson<unknown>(url, {
+        rateLimiter: limiter,
+        retries: 2,
+        revalidate: opts.revalidate ?? false,
+        headers: this.headers(),
+      });
+    } catch (err) {
+      // OpenF1 answers "no data" with 404 + {"detail":"No results found."} on
+      // some endpoints (e.g. starting_grid) and 200 with the same body on
+      // others. Both are an empty result, not a failure.
+      if (err instanceof HttpError && err.status === 404) {
+        return this.envelope([], opts.status, opts.staleAfterMs);
+      }
+      throw err;
+    }
     if (raw && typeof raw === "object" && "detail" in (raw as Record<string, unknown>)) {
       // OpenF1 returns {"detail":"No results found."} for empty queries
       return this.envelope([], opts.status, opts.staleAfterMs);
@@ -238,6 +259,53 @@ export class OpenF1Provider implements F1DataProvider {
       date: r.date, category: r.category, flag: r.flag, scope: r.scope,
       sector: r.sector, message: r.message, lapNumber: r.lap_number,
       driverNumber: r.driver_number, source: "official" as const,
+    }));
+    return { ...env, data };
+  }
+
+
+  async sessionResult(q: SessionQuery) {
+    const env = await this.get("session_result", openF1SessionResultSchema, { session_key: q.sessionKey }, { status: "historical", staleAfterMs: 6 * 3_600_000, revalidate: 3600 });
+    const data: SessionResultEntry[] = env.data.map((r) => ({
+      position: typeof r.position === "number" ? r.position : null,
+      driverNumber: r.driver_number,
+      numberOfLaps: r.number_of_laps ?? null,
+      points: r.points ?? null,
+      dnf: r.dnf, dns: r.dns, dsq: r.dsq,
+      duration: num(r.duration),
+      gapToLeader: Array.isArray(r.gap_to_leader)
+        ? (r.gap_to_leader.filter((x): x is number => typeof x === "number").at(-1) ?? null)
+        : (r.gap_to_leader ?? null),
+    }));
+    data.sort((a, b) => (a.position ?? 99) - (b.position ?? 99));
+    return { ...env, data };
+  }
+
+  async startingGrid(q: SessionQuery) {
+    const env = await this.get("starting_grid", openF1StartingGridSchema, { session_key: q.sessionKey }, { status: "historical", staleAfterMs: 6 * 3_600_000, revalidate: 3600 });
+    const data: GridSlot[] = env.data
+      .map((g) => ({ position: g.position, driverNumber: g.driver_number, lapDuration: g.lap_duration ?? null }))
+      .sort((a, b) => a.position - b.position);
+    return { ...env, data };
+  }
+
+  async overtakes(q: SessionQuery) {
+    const env = await this.get("overtakes", openF1OvertakeSchema, { session_key: q.sessionKey }, { status: "historical", staleAfterMs: 6 * 3_600_000, revalidate: 3600 });
+    const data: Overtake[] = env.data.map((o) => ({
+      date: o.date,
+      overtakingDriverNumber: o.overtaking_driver_number,
+      overtakenDriverNumber: o.overtaken_driver_number,
+      position: o.position,
+    }));
+    return { ...env, data };
+  }
+
+  async teamRadio(q: SessionQuery) {
+    const params: Record<string, string | number> = { session_key: q.sessionKey };
+    if (q.driverNumber != null) params.driver_number = q.driverNumber;
+    const env = await this.get("team_radio", openF1TeamRadioSchema, params, { status: "historical", staleAfterMs: 6 * 3_600_000, revalidate: 3600 });
+    const data: TeamRadioClip[] = env.data.map((t) => ({
+      date: t.date, driverNumber: t.driver_number, recordingUrl: t.recording_url,
     }));
     return { ...env, data };
   }

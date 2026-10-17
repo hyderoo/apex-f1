@@ -5,12 +5,16 @@ import type {
   IntervalPoint,
   Lap,
   LocationPoint,
+  GridSlot,
   Meeting,
+  Overtake,
   PitStop,
   PositionPoint,
   RaceControlMessage,
   Session,
+  SessionResultEntry,
   Stint,
+  TeamRadioClip,
   WeatherObservation,
 } from "@/lib/domain/types";
 
@@ -55,4 +59,8 @@ export interface F1DataProvider {
   locations(q: TelemetryQuery): Promise<Envelope<LocationPoint[]>>;
   weather(q: SessionQuery): Promise<Envelope<WeatherObservation[]>>;
   raceControl(q: SessionQuery): Promise<Envelope<RaceControlMessage[]>>;
+  sessionResult(q: SessionQuery): Promise<Envelope<SessionResultEntry[]>>;
+  startingGrid(q: SessionQuery): Promise<Envelope<GridSlot[]>>;
+  overtakes(q: SessionQuery): Promise<Envelope<Overtake[]>>;
+  teamRadio(q: SessionQuery): Promise<Envelope<TeamRadioClip[]>>;
 }

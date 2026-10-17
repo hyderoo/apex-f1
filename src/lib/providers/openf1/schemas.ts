@@ -141,3 +141,36 @@ export const openF1RaceControlSchema = z.object({
   lap_number: z.number().nullable().optional().default(null),
   driver_number: z.number().nullable().optional().default(null),
 });
+
+export const openF1SessionResultSchema = z.object({
+  // OpenF1 can return strings such as "RT" (retired) here.
+  position: z.union([z.number(), z.string(), z.null()]).optional(),
+  driver_number: z.number(),
+  number_of_laps: z.number().nullable().optional(),
+  points: z.number().nullable().optional(),
+  dnf: z.boolean().default(false),
+  dns: z.boolean().default(false),
+  dsq: z.boolean().default(false),
+  // Qualifying rows carry per-segment arrays (Q1/Q2/Q3) that can contain nulls.
+  duration: z.union([z.number(), z.string(), z.array(z.number().nullable()), z.null()]).optional(),
+  gap_to_leader: z.union([z.number(), z.string(), z.array(z.number().nullable()), z.null()]).optional(),
+});
+
+export const openF1StartingGridSchema = z.object({
+  position: z.number(),
+  driver_number: z.number(),
+  lap_duration: z.number().nullable().optional(),
+});
+
+export const openF1OvertakeSchema = z.object({
+  date: z.string(),
+  overtaking_driver_number: z.number(),
+  overtaken_driver_number: z.number(),
+  position: z.number(),
+});
+
+export const openF1TeamRadioSchema = z.object({
+  date: z.string(),
+  driver_number: z.number(),
+  recording_url: z.string(),
+});

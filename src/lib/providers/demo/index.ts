@@ -21,6 +21,10 @@ import weather11388 from "./data/openf1-weather-11388.json";
 import raceControl11388 from "./data/openf1-racecontrol-11388.json";
 import intervals11388 from "./data/openf1-intervals-11388.json";
 import position11388 from "./data/openf1-position-11388.json";
+import sessionResult11388 from "./data/openf1-sessionresult-11388.json";
+import sessionResult11384 from "./data/openf1-sessionresult-11384.json";
+import overtakes11388 from "./data/openf1-overtakes-11388.json";
+import teamRadio11388 from "./data/openf1-teamradio-11388.json";
 import carData3 from "./data/openf1-cardata-11388-3.json";
 import carData16 from "./data/openf1-cardata-11388-16.json";
 import location3 from "./data/openf1-location-11388-3.json";
@@ -187,5 +191,50 @@ export class DemoDataProvider implements F1DataProvider {
       lapNumber: r.lap_number ?? null, driverNumber: r.driver_number ?? null,
       source: "historical" as const,
     }))));
+  }
+
+  sessionResult(q: SessionQuery) {
+    const rows = q.sessionKey === DEMO_SESSION_KEY ? sessionResult11388 : q.sessionKey === 11384 ? sessionResult11384 : [];
+    return Promise.resolve(env((rows as any[]).map((r) => ({
+      position: typeof r.position === "number" ? r.position : null, driverNumber: r.driver_number,
+      numberOfLaps: r.number_of_laps ?? null, points: r.points ?? null,
+      dnf: r.dnf ?? false, dns: r.dns ?? false, dsq: r.dsq ?? false,
+      duration: Array.isArray(r.duration)
+        ? (r.duration.filter((x: any) => typeof x === "number").length ? Math.min(...r.duration.filter((x: any) => typeof x === "number")) : null)
+        : (typeof r.duration === "number" ? r.duration : null),
+      gapToLeader: Array.isArray(r.gap_to_leader)
+        ? (r.gap_to_leader.filter((x: any) => typeof x === "number").at(-1) ?? null)
+        : (r.gap_to_leader ?? null),
+    })).sort((a: any, b: any) => (a.position ?? 99) - (b.position ?? 99))));
+  }
+
+  startingGrid(q: SessionQuery) {
+    // The OpenF1 starting_grid beta has no 2026 rows; the demo grid derives
+    // from the qualifying classification of the same meeting (11384).
+    if (q.sessionKey !== DEMO_SESSION_KEY) return Promise.resolve(env([]));
+    return Promise.resolve(env((sessionResult11384 as any[])
+      .filter((r) => typeof r.position === "number")
+      .map((r) => ({
+        position: r.position as number, driverNumber: r.driver_number,
+        lapDuration: Array.isArray(r.duration)
+          ? (r.duration.filter((x: any) => typeof x === "number").length ? Math.min(...r.duration.filter((x: any) => typeof x === "number")) : null)
+          : (typeof r.duration === "number" ? r.duration : null),
+      }))
+      .sort((a: any, b: any) => a.position - b.position)));
+  }
+
+  overtakes(q: SessionQuery) {
+    if (q.sessionKey !== DEMO_SESSION_KEY) return Promise.resolve(env([]));
+    return Promise.resolve(env((overtakes11388 as any[]).map((o) => ({
+      date: o.date, overtakingDriverNumber: o.overtaking_driver_number,
+      overtakenDriverNumber: o.overtaken_driver_number, position: o.position,
+    }))));
+  }
+
+  teamRadio(q: SessionQuery) {
+    if (q.sessionKey !== DEMO_SESSION_KEY) return Promise.resolve(env([]));
+    return Promise.resolve(env((teamRadio11388 as any[])
+      .filter((t) => q.driverNumber == null || t.driver_number === q.driverNumber)
+      .map((t) => ({ date: t.date, driverNumber: t.driver_number, recordingUrl: t.recording_url }))));
   }
 }

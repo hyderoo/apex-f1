@@ -54,6 +54,13 @@ preferences and reminders.
 
 ### Ingestion & sync
 
+`GET /api/session-extras?session=<key>` returns the official classification
+(OpenF1 `session_result`), starting grid (`starting_grid`, or the qualifying
+classification when the beta endpoint has no rows — labelled as such),
+overtakes (`overtakes`) and team radio clips (`team_radio`, audio hosted by
+formula1.com) for a session. The live timing page renders all four panels.
+Qualifying segment arrays (Q1/Q2/Q3) are reduced to each driver's best time.
+
 `GET /api/cron/sync` (Authorization: `Bearer $CRON_SECRET`) upserts seasons,
 circuits, meetings, sessions and standings into Supabase and records a
 `data_sync_runs` row. `vercel.json` schedules it once per day (00:00 UTC),

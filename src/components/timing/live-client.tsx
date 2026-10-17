@@ -5,6 +5,7 @@ import { useState } from "react";
 import { TimingTower } from "./timing-tower";
 import { WeatherPanel } from "@/components/dashboard/weather-panel";
 import { RaceControlFeed } from "@/components/dashboard/race-control-feed";
+import { SessionExtras } from "./session-extras";
 import { Badge } from "@/components/ui/badge";
 
 export function LiveClient({
@@ -58,6 +59,7 @@ export function LiveClient({
           </section>
         </div>
       </div>
+      <SessionExtras sessionKey={selectedKey ?? undefined} />
     </div>
   );
 }

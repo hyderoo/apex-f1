@@ -283,3 +283,38 @@ export interface UserPreferences {
   favoriteCircuits: number[];
   sessionReminders: number[]; // session keys
 }
+
+/** Official session classification row (OpenF1 session_result). */
+export interface SessionResultEntry {
+  position: number | null;
+  driverNumber: number;
+  numberOfLaps: number | null;
+  points: number | null;
+  dnf: boolean;
+  dns: boolean;
+  dsq: boolean;
+  duration: number | null;
+  gapToLeader: number | string | null;
+}
+
+/** Starting grid slot (OpenF1 starting_grid, or derived from qualifying). */
+export interface GridSlot {
+  position: number;
+  driverNumber: number;
+  lapDuration: number | null;
+}
+
+/** Recorded overtake (OpenF1 overtakes). */
+export interface Overtake {
+  date: string;
+  overtakingDriverNumber: number;
+  overtakenDriverNumber: number;
+  position: number;
+}
+
+/** Team radio clip (OpenF1 team_radio; audio hosted by formula1.com). */
+export interface TeamRadioClip {
+  date: string;
+  driverNumber: number;
+  recordingUrl: string;
+}
