@@ -12,13 +12,15 @@ import { Term } from "@/components/ui/tooltip-term";
 import { DriverAvatar } from "@/components/identity/driver-identity";
 import { DegradationPanel } from "@/components/timing/degradation-panel";
 import { UndercutPanel } from "@/components/timing/undercut-panel";
+import { WeatherPacePanel } from "@/components/timing/weather-pace-panel";
 import { DragScroll } from "@/components/ui/drag-scroll";
 
 interface StrategyResponse {
   drivers: Driver[];
   stints: Stint[];
   pitStops: PitStop[];
-  laps: { driverNumber: number; lapNumber: number; lapDuration: number | null; isPitOutLap: boolean }[];
+  laps: { driverNumber: number; lapNumber: number; dateStart: string | null; lapDuration: number | null; isPitOutLap: boolean }[];
+  weather: { date: string; airTemperature: number | null; trackTemperature: number | null }[];
   lapCount: number;
   provenance: { status: DataStatus; provider: string; retrievedAt: string };
 }
@@ -146,6 +148,7 @@ export function StrategyClient({ races }: { races: { sessionKey: number; label: 
         </div>
         <DegradationPanel drivers={data.drivers} stints={data.stints} pitStops={data.pitStops} laps={data.laps} />
         <UndercutPanel drivers={data.drivers} pitStops={data.pitStops} laps={data.laps} />
+        <WeatherPacePanel drivers={data.drivers} laps={data.laps} weather={data.weather} pitStops={data.pitStops} />
         </div>
       )}
     </div>
