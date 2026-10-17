@@ -8,6 +8,7 @@ import { formatInTimeZone, formatLocalTime } from "@/lib/utils/time";
 import { usePrefs } from "@/components/preferences";
 import { Badge } from "@/components/ui/badge";
 import { FlagImage } from "@/components/identity/country-flag";
+import { CircuitImage } from "@/components/identity/circuit-image";
 import { cn } from "@/lib/utils/cn";
 
 type Filter = "all" | "upcoming" | "past";
@@ -111,18 +112,9 @@ export function CalendarClient({
                   track
                 </div>
               </div>
-              {m.circuitImageUrl && (
-                // eslint-disable-next-line @next/next/no-img-element -- small provider thumbnail
-                <img
-                  src={m.circuitImageUrl}
-                  alt={`${m.circuitShortName} circuit`}
-                  width={72}
-                  height={54}
-                  loading="lazy"
-                  className="hidden h-13.5 w-18 shrink-0 self-center rounded-[3px] border border-[var(--line)] object-cover md:block"
-                  style={{ width: 72, height: 54 }}
-                />
-              )}
+              <span className="hidden shrink-0 self-center md:block">
+                <CircuitImage src={m.circuitImageUrl} label={m.circuitShortName} width={72} height={54} />
+              </span>
               <span className="sr-only">Round {i + 1}</span>
             </Link>
           );
