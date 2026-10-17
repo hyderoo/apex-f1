@@ -31,6 +31,7 @@ export const metadata: Metadata = {
     title: "APEX F1",
     description: "Every Lap. Every Detail. Live.",
     type: "website",
+    images: [{ url: "/api/og", width: 1200, height: 630, alt: "APEX F1 — Every Lap. Every Detail. Live." }],
   },
 };
 

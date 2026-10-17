@@ -5,6 +5,7 @@ import { PointsProgression } from "@/components/charts/points-progression";
 import { Badge } from "@/components/ui/badge";
 import { OfflineNote } from "@/components/pwa/offline-note";
 import { TeamIdentity } from "@/components/identity/team-identity";
+import { ShareCardButton } from "@/components/ui/share-card-button";
 import { DragScroll } from "@/components/ui/drag-scroll";
 
 export const metadata = { title: "Race Analysis" };
@@ -208,6 +209,7 @@ function TeammateH2H({ results, qualifying }: { results: H2HRaceRow[]; qualifyin
             <th className="px-4 py-2 micro-label font-normal">Team</th>
             <th className="px-2 py-2 micro-label font-normal">Qualifying</th>
             <th className="px-2 py-2 micro-label font-normal">Race</th>
+            <th className="px-2 py-2" />
           </tr>
         </thead>
         <tbody>
@@ -223,6 +225,9 @@ function TeammateH2H({ results, qualifying }: { results: H2HRaceRow[]; qualifyin
                 <td className="px-2 py-1.5 font-mono text-xs tnum">
                   <span className="font-semibold">{nameOf(da)} {sa.r}</span>
                   <span className="text-[var(--ink-3)]"> — {sb.r} {nameOf(db)}</span>
+                </td>
+                <td className="px-2 py-1.5 text-right">
+                  <ShareCardButton a={nameOf(da)} b={nameOf(db)} />
                 </td>
               </tr>
             );
