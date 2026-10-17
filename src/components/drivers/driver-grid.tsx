@@ -34,7 +34,7 @@ export function DriverGrid({ drivers }: { drivers: Driver[] }) {
               onClick={() => toggleFavorite("driver", d.driverNumber)}
               aria-label={isFavorite("driver", d.driverNumber) ? "Remove from favorites" : "Add to favorites"}
               className={cn(
-                "absolute right-3 top-3",
+                "absolute right-3 top-3 focus-visible:opacity-100",
                 isFavorite("driver", d.driverNumber) ? "text-[var(--accent)]" : "text-[var(--ink-3)] opacity-0 transition-opacity group-hover:opacity-100",
               )}
             >
@@ -47,11 +47,10 @@ export function DriverGrid({ drivers }: { drivers: Driver[] }) {
                   <div className="font-mono text-2xl font-bold tnum leading-none">
                     {d.driverNumber}
                   </div>
-                  <div className="mt-1 font-mono text-[11px] tracking-wider text-[var(--ink-3)]">
-                    {d.acronym}
+                  <div className="mt-1 flex items-center gap-1.5 font-mono text-[11px] tracking-wider text-[var(--ink-3)]">
+                    {d.acronym} <CountryFlag alpha3={d.countryCode} size={12} />
                   </div>
                 </div>
-                <span className="ml-auto self-start"><CountryFlag alpha3={d.countryCode} size={16} /></span>
               </div>
               <div className="mt-3 text-base font-semibold leading-tight">
                 {d.firstName} <span className="uppercase">{d.lastName}</span>
