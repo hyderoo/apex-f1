@@ -84,7 +84,7 @@ export function TelemetryExplorer({
   const outline = (d1Data?.trackOutline ?? d2Data?.trackOutline ?? []) as { x: number; y: number; t?: number }[];
   const replayDrivers = [d1, d2]
     .filter((n): n is number => n != null)
-    .map((n) => ({ n, pts: (query.data?.drivers?.[String(n)]?.trackOutline ?? []).filter((p) => p.t != null) as { t: number; x: number; y: number }[] }))
+    .map((n) => ({ n, pts: (query.data?.drivers?.[String(n)]?.trackOutline ?? []).filter((p) => p.t != null) as { t: number; x: number; y: number; distance?: number }[] }))
     .filter((d) => d.pts.length > 10);
   const colorOf = (n: number) => `#${(drivers.find((d) => d.driverNumber === n)?.teamColour ?? "8a8f98").replace("#", "")}`;
   const acronymOf = (n: number) => drivers.find((d) => d.driverNumber === n)?.acronym ?? String(n);
@@ -270,6 +270,7 @@ export function TelemetryExplorer({
                 <div className="p-3">
                   <LapReplay
                     drivers={replayDrivers.map((d) => ({ points: d.pts, color: colorOf(d.n), label: acronymOf(d.n) }))}
+                    delta={query.data?.delta?.length ? query.data.delta : undefined}
                   />
                   <p className="mt-2 text-[10px] leading-snug text-[var(--ink-3)]">
                     Markers interpolate only between recorded GPS points of this
@@ -320,7 +321,7 @@ export function TelemetryExplorer({
 }
 
 /** Position of a driver at time t, linearly interpolated between recorded points. */
-function posAt(points: { t: number; x: number; y: number }[], t: number) {
+function posAt(points: { t: number; x: number; y: number; distance?: number }[], t: number) {
   if (t <= points[0].t) return points[0];
   const last = points[points.length - 1];
   if (t >= last.t) return last;
@@ -331,10 +332,15 @@ function posAt(points: { t: number; x: number; y: number }[], t: number) {
   }
   const a = points[lo], b = points[hi];
   const f = (t - a.t) / Math.max(1, b.t - a.t);
-  return { t, x: a.x + (b.x - a.x) * f, y: a.y + (b.y - a.y) * f };
+  return {
+    t,
+    x: a.x + (b.x - a.x) * f,
+    y: a.y + (b.y - a.y) * f,
+    distance: a.distance != null && b.distance != null ? a.distance + (b.distance - a.distance) * f : undefined,
+  };
 }
 
-function LapReplay({ drivers }: { drivers: { points: { t: number; x: number; y: number }[]; color: string; label: string }[] }) {
+function LapReplay({ drivers, delta }: { drivers: { points: { t: number; x: number; y: number; distance?: number }[]; color: string; label: string }[]; delta?: { distance: number; delta: number }[] }) {
   const maxT = Math.max(...drivers.map((d) => d.points[d.points.length - 1].t));
   const [t, setT] = useState(0);
   const [playing, setPlaying] = useState(false);
@@ -356,6 +362,30 @@ function LapReplay({ drivers }: { drivers: { points: { t: number; x: number; y: 
     const p = posAt(d.points, Math.min(t, d.points[d.points.length - 1].t));
     return { x: p.x, y: p.y, color: d.color, label: d.label };
   });
+
+  // Live delta readout: gap at the second driver's current distance,
+  // interpolated from the recorded delta series (positive = B slower there).
+  let deltaReadout: string | null = null;
+  if (delta && delta.length > 1 && drivers.length > 1) {
+    const pts = drivers[1].points;
+    const p = posAt(pts, Math.min(t, pts[pts.length - 1].t));
+    if (p.distance != null) {
+      let lo = 0, hi = delta.length - 1;
+      if (p.distance <= delta[0].distance) lo = hi = 0;
+      else if (p.distance >= delta[hi].distance) lo = hi;
+      else {
+        while (hi - lo > 1) {
+          const mid = (lo + hi) >> 1;
+          if (delta[mid].distance <= p.distance) lo = mid; else hi = mid;
+        }
+      }
+      const a = delta[lo], b = delta[hi];
+      const f = b.distance > a.distance ? (p.distance - a.distance) / (b.distance - a.distance) : 0;
+      const gap = a.delta + (b.delta - a.delta) * f;
+      const ahead = gap >= 0 ? drivers[0].label : drivers[1].label;
+      deltaReadout = `${ahead} ahead by ${Math.abs(gap).toFixed(3)}s`;
+    }
+  }
   const fmt = (ms: number) => `${Math.floor(ms / 60000)}:${String(Math.floor((ms % 60000) / 1000)).padStart(2, "0")}.${String(Math.floor((ms % 1000) / 100))}`;
 
   return (
@@ -376,6 +406,14 @@ function LapReplay({ drivers }: { drivers: { points: { t: number; x: number; y: 
           aria-label="Replay position"
         />
         <span className="font-mono text-[11px] tnum text-[var(--ink-2)]">{fmt(t)} / {fmt(maxT)}</span>
+        {deltaReadout && (
+          <span
+            className="border border-[var(--line)] bg-[var(--surface-2)] px-2 py-0.5 font-mono text-[11px] tnum text-[var(--accent)]"
+            title="Gap at the second driver's current track position, interpolated from recorded lap timing"
+          >
+            Δ {deltaReadout}
+          </span>
+        )}
         <select
           value={speed} onChange={(e) => setSpeed(Number(e.target.value))}
           className="border border-[var(--line)] bg-[var(--surface-2)] px-1 py-0.5 text-[11px]"
