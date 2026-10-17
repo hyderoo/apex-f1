@@ -1,5 +1,6 @@
 import { getCalendar } from "@/lib/f1/season";
 import { PageHeader } from "@/components/layout/page-header";
+import { FlagImage } from "@/components/identity/country-flag";
 
 export const metadata = { title: "Circuits" };
 export const dynamic = "force-dynamic";
@@ -20,6 +21,13 @@ export default async function CircuitsPage() {
       <div className="grid grid-cols-1 gap-px bg-[var(--line)] sm:grid-cols-2 xl:grid-cols-3">
         {circuits.map((m) => (
           <a key={m.circuitKey} href={`/calendar/${m.meetingKey}`} className="panel p-4 hover:bg-[var(--surface-3)]">
+            <div className="mb-2 flex items-start justify-between gap-2">
+              <FlagImage src={m.countryFlagUrl} label={m.countryName} size={16} />
+              {m.circuitImageUrl && (
+                // eslint-disable-next-line @next/next/no-img-element -- provider-supplied circuit outline
+                <img src={m.circuitImageUrl} alt={`${m.circuitShortName} layout`} width={64} height={48} loading="lazy" className="h-12 w-16 object-contain opacity-80" />
+              )}
+            </div>
             <div className="text-base font-semibold">{m.circuitShortName}</div>
             <div className="mt-0.5 text-xs text-[var(--ink-3)]">
               {m.location}, {m.countryName}

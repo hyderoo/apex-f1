@@ -33,6 +33,7 @@ export default async function TelemetryPage() {
             driverNumber: d.driverNumber,
             acronym: d.acronym,
             teamColour: d.teamColour,
+            headshotUrl: d.headshotUrl,
           }))}
         />
       </Suspense>

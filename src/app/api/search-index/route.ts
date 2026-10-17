@@ -12,7 +12,10 @@ export async function GET() {
     const finished = sessions
       .filter((s) => s.status === "finished" && (s.type === "Race" || s.type === "Qualifying"))
       .sort((a, b) => b.dateStart.localeCompare(a.dateStart));
-    let drivers: { driverNumber: number; fullName: string; acronym: string; teamName: string }[] = [];
+    let drivers: {
+      driverNumber: number; fullName: string; acronym: string; teamName: string;
+      headshotUrl: string | null; teamColour: string; countryCode: string | null;
+    }[] = [];
     if (finished[0]) {
       const { envelope } = await withDemoFallback((p) => p.drivers({ sessionKey: finished[0].sessionKey }));
       drivers = envelope.data ?? [];
@@ -22,14 +25,17 @@ export async function GET() {
       ...drivers.map((d) => ({
         kind: "driver", id: String(d.driverNumber), label: d.fullName,
         sub: d.teamName, href: `/drivers/${d.driverNumber}`,
+        headshotUrl: d.headshotUrl, acronym: d.acronym, teamColour: d.teamColour,
+        countryCode: d.countryCode,
       })),
       ...teams.map((t) => ({
         kind: "team", id: t.teamName, label: t.teamName, sub: "Team",
-        href: `/teams/${encodeURIComponent(t.teamName)}`,
+        href: `/teams/${encodeURIComponent(t.teamName)}`, teamColour: t.teamColour,
       })),
       ...meetings.filter((m) => m.name !== "Pre-Season Testing").map((m) => ({
         kind: "meeting", id: String(m.meetingKey), label: m.name,
         sub: `${m.countryName} · ${m.circuitShortName}`, href: `/calendar/${m.meetingKey}`,
+        countryFlagUrl: m.countryFlagUrl, circuitImageUrl: m.circuitImageUrl,
       })),
       ...sessions
         .filter((s) => s.type === "Race")

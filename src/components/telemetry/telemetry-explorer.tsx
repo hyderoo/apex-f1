@@ -9,9 +9,10 @@ import { DataStatusBadge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { usePrefs } from "@/components/preferences";
 import type { DataStatus } from "@/lib/domain/types";
+import { DriverAvatar } from "@/components/identity/driver-identity";
 
 interface SessionOption { sessionKey: number; label: string; date: string; type: string }
-interface DriverOption { driverNumber: number; acronym: string; teamColour: string }
+interface DriverOption { driverNumber: number; acronym: string; teamColour: string; headshotUrl?: string | null }
 
 interface TelemetryResponse {
   drivers: Record<string, {
@@ -76,6 +77,9 @@ export function TelemetryExplorer({
     .filter((d) => d.pts.length > 10);
   const colorOf = (n: number) => `#${(drivers.find((d) => d.driverNumber === n)?.teamColour ?? "8a8f98").replace("#", "")}`;
   const acronymOf = (n: number) => drivers.find((d) => d.driverNumber === n)?.acronym ?? String(n);
+  const driverOf = (n: number | null) => drivers.find((d) => d.driverNumber === n) ?? null;
+  const selA = driverOf(d1);
+  const selB = d2 != null ? driverOf(d2) : null;
 
   const maxLap = 80;
 
@@ -122,6 +126,10 @@ export function TelemetryExplorer({
             ))}
           </select>
         </label>
+        <div className="flex items-end gap-2 pb-0.5">
+          {selA && <DriverAvatar src={selA.headshotUrl} acronym={selA.acronym} teamColour={selA.teamColour} size={28} />}
+          {selB && <DriverAvatar src={selB.headshotUrl} acronym={selB.acronym} teamColour={selB.teamColour} size={28} />}
+        </div>
         <label className="block">
           <span className="micro-label">Lap</span>
           <div className="mt-1 flex items-center gap-1">

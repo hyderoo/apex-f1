@@ -5,6 +5,7 @@ import { PageHeader } from "@/components/layout/page-header";
 import { Badge, DataStatusBadge } from "@/components/ui/badge";
 import { sessionStatusLabel } from "@/lib/f1/labels";
 import { MeetingDetailClient } from "@/components/circuits/meeting-detail-client";
+import { CircuitHero } from "@/components/identity/circuit-hero";
 
 export const dynamic = "force-dynamic";
 
@@ -26,6 +27,15 @@ export default async function MeetingPage({
         title={meeting.name}
         description={meeting.officialName || `${meeting.circuitShortName}, ${meeting.location}`}
         status={provenance.status}
+      />
+      <CircuitHero
+        name={meeting.name}
+        circuitShortName={meeting.circuitShortName}
+        location={meeting.location}
+        countryName={meeting.countryName}
+        countryFlagUrl={meeting.countryFlagUrl}
+        circuitImageUrl={meeting.circuitImageUrl}
+        eyebrow={sessionStatusLabel(status)}
       />
       <div className="grid grid-cols-1 gap-px bg-[var(--line)] lg:grid-cols-3">
         <section className="panel lg:col-span-2">

@@ -5,6 +5,9 @@ import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Search } from "lucide-react";
+import { DriverAvatar } from "@/components/identity/driver-identity";
+import { TeamIdentity } from "@/components/identity/team-identity";
+import { FlagImage } from "@/components/identity/country-flag";
 
 interface SearchItem {
   kind: "driver" | "team" | "meeting" | "circuit" | "session";
@@ -12,6 +15,11 @@ interface SearchItem {
   label: string;
   sub: string;
   href: string;
+  headshotUrl?: string | null;
+  acronym?: string;
+  teamColour?: string;
+  countryCode?: string | null;
+  countryFlagUrl?: string | null;
 }
 
 async function fetchIndex(): Promise<SearchItem[]> {
@@ -71,8 +79,15 @@ export function SearchPalette({ open, onClose }: { open: boolean; onClose: () =>
                     handleClose();
                   }}
                 >
-                  <span className="w-14 shrink-0 text-[9px] uppercase tracking-[0.15em] text-[var(--ink-3)]">
-                    {r.kind}
+                  <span className="flex w-7 shrink-0 items-center justify-center">
+                    {r.kind === "driver" && (
+                      <DriverAvatar src={r.headshotUrl} acronym={r.acronym ?? r.label.slice(0, 2)} teamColour={r.teamColour} size={22} />
+                    )}
+                    {r.kind === "team" && <TeamIdentity name={r.label} colour={r.teamColour} size="compact" />}
+                    {r.kind === "meeting" && <FlagImage src={r.countryFlagUrl} label={r.label} size={14} />}
+                    {(r.kind === "circuit" || r.kind === "session") && (
+                      <span className="text-[9px] uppercase tracking-[0.15em] text-[var(--ink-3)]">{r.kind.slice(0, 2)}</span>
+                    )}
                   </span>
                   <span className="flex-1 truncate text-sm">{r.label}</span>
                   <span className="truncate text-xs text-[var(--ink-3)]">{r.sub}</span>
