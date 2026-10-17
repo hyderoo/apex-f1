@@ -14,6 +14,7 @@ import { Term } from "@/components/ui/tooltip-term";
 import { usePrefs } from "@/components/preferences";
 import { hexToRgba } from "@/lib/utils/format";
 import { cn } from "@/lib/utils/cn";
+import { DragScroll } from "@/components/ui/drag-scroll";
 
 interface LeaderboardResponse {
   session: Session;
@@ -133,7 +134,7 @@ export function TimingTower({
         </div>
       </div>
 
-      <div className="overflow-x-auto">
+      <DragScroll>
         <table className="w-full min-w-[560px] border-collapse">
           <thead>
             <tr className="border-b border-[var(--line)] text-left">
@@ -166,7 +167,7 @@ export function TimingTower({
             ))}
           </tbody>
         </table>
-      </div>
+      </DragScroll>
       {rows.length === 0 && (
         <div className="px-4 py-8 text-center text-xs text-[var(--ink-3)]">
           No timing data recorded for this session yet.

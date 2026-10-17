@@ -5,6 +5,7 @@ import { PointsProgression } from "@/components/charts/points-progression";
 import { Badge } from "@/components/ui/badge";
 import { OfflineNote } from "@/components/pwa/offline-note";
 import { TeamIdentity } from "@/components/identity/team-identity";
+import { DragScroll } from "@/components/ui/drag-scroll";
 
 export const metadata = { title: "Race Analysis" };
 export const dynamic = "force-dynamic";
@@ -200,7 +201,7 @@ function TeammateH2H({ results, qualifying }: { results: H2HRaceRow[]; qualifyin
   }
 
   return (
-    <div className="overflow-x-auto">
+    <DragScroll>
       <table className="w-full min-w-[560px]">
         <thead>
           <tr className="border-b border-[var(--line)] text-left">
@@ -234,6 +235,6 @@ function TeammateH2H({ results, qualifying }: { results: H2HRaceRow[]; qualifyin
         one classified car counts for that car; rounds with one car entered or neither
         car classified are excluded.
       </p>
-    </div>
+    </DragScroll>
   );
 }

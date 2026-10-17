@@ -11,6 +11,7 @@ import { DataStatusBadge } from "@/components/ui/badge";
 import { Term } from "@/components/ui/tooltip-term";
 import { DriverAvatar } from "@/components/identity/driver-identity";
 import { DegradationPanel } from "@/components/timing/degradation-panel";
+import { DragScroll } from "@/components/ui/drag-scroll";
 
 interface StrategyResponse {
   drivers: Driver[];
@@ -71,7 +72,7 @@ export function StrategyClient({ races }: { races: { sessionKey: number; label: 
               <Term>Stint</Term> timeline · {data.lapCount} laps
             </span>
           </div>
-          <div className="overflow-x-auto">
+          <DragScroll>
             <div className="min-w-[700px] px-4 py-2">
               {data.drivers
                 .slice()
@@ -137,7 +138,7 @@ export function StrategyClient({ races }: { races: { sessionKey: number; label: 
                 </span>
               </div>
             </div>
-          </div>
+          </DragScroll>
           <div className="border-t border-[var(--line)] px-4 py-2 text-[10px] text-[var(--ink-3)]">
             Observed provider records only. Pit wall lines mark the recorded pit lap; hover for duration.
           </div>

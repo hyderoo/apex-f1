@@ -43,6 +43,7 @@ export default async function FavoritesPage() {
       nextRace={(() => {
         if (!nextMeeting) return null;
         const race = nextMeeting.sessions.find((s) => s.type === "Race")!;
+        // eslint-disable-next-line react-hooks/purity -- server component: computed once per request, hour precision only
         const ms = new Date(race.dateStart).getTime() - Date.now();
         const days = Math.floor(ms / 86_400_000);
         const hours = Math.floor((ms % 86_400_000) / 3_600_000);
