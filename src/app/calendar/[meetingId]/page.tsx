@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getCalendar, meetingStatus } from "@/lib/f1/season";
-import { formatInTimeZone, formatLocalTime } from "@/lib/utils/time";
 import { PageHeader } from "@/components/layout/page-header";
 import { Badge, DataStatusBadge } from "@/components/ui/badge";
 import { sessionStatusLabel } from "@/lib/f1/labels";

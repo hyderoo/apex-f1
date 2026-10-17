@@ -1,6 +1,6 @@
 import { cache } from "react";
 import type { Envelope, Meeting, Session, SessionStatus } from "@/lib/domain/types";
-import { getProvider, withDemoFallback } from "@/lib/providers";
+import { withDemoFallback } from "@/lib/providers";
 import { fetchSeasonCalendar } from "@/lib/providers/jolpica";
 import type { SeasonRound } from "@/lib/domain/types";
 

@@ -2,7 +2,7 @@
 
 import { useQuery, keepPreviousData } from "@tanstack/react-query";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { TelemetryChart, type ChannelPoint } from "./telemetry-chart";
 import { TrackMap } from "./track-map";
 import { DataStatusBadge } from "@/components/ui/badge";

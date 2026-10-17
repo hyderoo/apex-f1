@@ -34,12 +34,13 @@ export function SearchPalette({ open, onClose }: { open: boolean; onClose: () =>
       .slice(0, 14);
   }, [data, q]);
 
-  useEffect(() => {
-    if (!open) setQ("");
-  }, [open]);
+  const handleClose = () => {
+    setQ("");
+    onClose();
+  };
 
   return (
-    <Dialog.Root open={open} onOpenChange={(o) => !o && onClose()}>
+    <Dialog.Root open={open} onOpenChange={(o) => !o && handleClose()}>
       <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 z-[80] bg-black/50 backdrop-blur-[2px]" />
         <Dialog.Content className="fixed left-1/2 top-[15%] z-[90] w-[92vw] max-w-lg -translate-x-1/2 border border-[var(--line-2)] bg-[var(--surface-2)] shadow-2xl">
@@ -55,7 +56,7 @@ export function SearchPalette({ open, onClose }: { open: boolean; onClose: () =>
               onKeyDown={(e) => {
                 if (e.key === "Enter" && results[0]) {
                   router.push(results[0].href);
-                  onClose();
+                  handleClose();
                 }
               }}
             />
@@ -67,7 +68,7 @@ export function SearchPalette({ open, onClose }: { open: boolean; onClose: () =>
                   className="flex w-full items-center gap-3 px-3 py-2 text-left hover:bg-[var(--surface-3)]"
                   onClick={() => {
                     router.push(r.href);
-                    onClose();
+                    handleClose();
                   }}
                 >
                   <span className="w-14 shrink-0 text-[9px] uppercase tracking-[0.15em] text-[var(--ink-3)]">

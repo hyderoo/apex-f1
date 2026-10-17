@@ -57,8 +57,11 @@ export function PreferencesProvider({ children }: { children: React.ReactNode })
   const [hydrated, setHydrated] = useState(false);
 
   // Hydrate from localStorage, then merge Supabase preferences when signed in.
+  // Hydration from localStorage is a deliberate external-store read on mount.
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => {
     const local = load();
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setPrefs(local);
     setHydrated(true);
     const sb = getSupabaseBrowser();

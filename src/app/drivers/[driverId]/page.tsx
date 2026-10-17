@@ -3,7 +3,7 @@ import { fetchDriverStandings, fetchRaceResults } from "@/lib/providers/jolpica"
 import { SEASON_YEAR } from "@/lib/f1/season";
 import { notFound } from "next/navigation";
 import { PageHeader } from "@/components/layout/page-header";
-import { hexToRgba, formatLapTime } from "@/lib/utils/format";
+import { hexToRgba } from "@/lib/utils/format";
 import { Badge } from "@/components/ui/badge";
 
 export const dynamic = "force-dynamic";
