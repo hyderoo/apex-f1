@@ -1,69 +1,130 @@
-import Image from "next/image";
+import Link from "next/link";
+import { getCalendar, sessionsByStatus } from "@/lib/f1/season";
+import { TimingTower } from "@/components/timing/timing-tower";
+import { WeatherPanel } from "@/components/dashboard/weather-panel";
+import { RaceControlFeed } from "@/components/dashboard/race-control-feed";
+import { SessionCountdown } from "@/components/dashboard/countdown";
+import { StandingsPreview } from "@/components/dashboard/standings-preview";
+import { DataStatusBadge } from "@/components/ui/badge";
+import { PageHeader } from "@/components/layout/page-header";
 
-export default function Home() {
+export const dynamic = "force-dynamic";
+
+export default async function DashboardPage() {
+  const { meetings, provenance } = await getCalendar();
+  const allSessions = meetings.flatMap((m) => m.sessions);
+  const { live, upcoming, finished } = sessionsByStatus(allSessions);
+  const current = live[0] ?? null;
+  const next = upcoming[0] ?? null;
+  const lastRace = finished.filter((s) => s.type === "Race")[0] ?? finished[0] ?? null;
+  const focus = current ?? lastRace;
+
+  const totalRounds = meetings.filter((m) => m.name !== "Pre-Season Testing").length;
+  const doneRounds = meetings.filter(
+    (m) => m.name !== "Pre-Season Testing" && m.sessions.every((s) => s.status === "finished"),
+  ).length;
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert h-5 w-[100px]"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the{" "}
-            <code className="rounded bg-black/[.06] px-1.5 py-0.5 font-mono text-[0.9em] dark:bg-white/[.08]">
-              page.tsx
-            </code>{" "}
-            file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+    <div>
+      <PageHeader
+        eyebrow={`${new Date().getFullYear()} · Season dashboard`}
+        title="APEX F1"
+        description="Every Lap. Every Detail. Live. Real timing, telemetry and race data from OpenF1 and the Jolpica results API — clearly labelled by freshness."
+        status={provenance.status}
+        updatedAt={provenance.retrievedAt}
+      />
+
+      <div className="grid grid-cols-1 gap-px bg-[var(--line)] lg:grid-cols-3">
+        {/* Session status */}
+        <section className="panel lg:col-span-2">
+          <div className="flex items-center justify-between border-b border-[var(--line)] px-4 py-2.5">
+            <span className="micro-label">Session status</span>
+            {current && <DataStatusBadge status="live" />}
+          </div>
+          <div className="px-4 py-4">
+            {current ? (
+              <div>
+                <div className="text-lg font-semibold">
+                  {current.countryName} — {current.name}
+                </div>
+                <p className="mt-1 text-xs text-[var(--ink-3)]">
+                  In progress now. Timing below refreshes from the provider; without a live
+                  OpenF1 subscription it is marked DELAYED.
+                </p>
+              </div>
+            ) : next ? (
+              <SessionCountdown session={next} />
+            ) : (
+              <p className="text-sm text-[var(--ink-3)]">Season complete — no upcoming sessions.</p>
+            )}
+            {lastRace && !current && (
+              <p className="mt-4 border-t border-[var(--line)] pt-3 text-xs text-[var(--ink-3)]">
+                Latest completed:{" "}
+                <Link href={`/live?session=${lastRace.sessionKey}`} className="text-[var(--accent)] hover:underline">
+                  {lastRace.location} {lastRace.name}
+                </Link>{" "}
+                ({lastRace.dateStart.slice(0, 10)}) — historical timing shown below.
+              </p>
+            )}
+          </div>
+          {/* Season progress */}
+          <div className="border-t border-[var(--line)] px-4 py-3">
+            <div className="flex items-center justify-between">
+              <span className="micro-label">Season progress</span>
+              <span className="font-mono text-xs tnum">{doneRounds}/{totalRounds} rounds</span>
+            </div>
+            <div className="mt-2 h-1 w-full bg-[var(--surface-3)]">
+              <div
+                className="h-1 bg-[var(--accent)]"
+                style={{ width: totalRounds ? `${(doneRounds / totalRounds) * 100}%` : "0%" }}
+              />
+            </div>
+          </div>
+        </section>
+
+        {/* Weather */}
+        <section className="panel">
+          <div className="border-b border-[var(--line)] px-4 py-2.5">
+            <span className="micro-label">
+              Track conditions{focus ? ` · ${focus.circuitShortName}` : ""}
+            </span>
+          </div>
+          <WeatherPanel sessionKey={focus?.sessionKey} />
+        </section>
+
+        {/* Timing tower */}
+        <section className="panel lg:col-span-2">
+          <div className="flex items-center justify-between border-b border-[var(--line)] px-4 py-2.5">
+            <span className="micro-label">
+              Timing tower{focus ? ` · ${focus.location} ${focus.name}` : ""}
+            </span>
+            <Link href="/live" className="text-[11px] text-[var(--accent)] hover:underline">
+              Open live timing →
+            </Link>
+          </div>
+          <TimingTower sessionKey={focus?.sessionKey} />
+        </section>
+
+        {/* Right rail */}
+        <div className="flex flex-col gap-px bg-[var(--line)]">
+          <section className="panel flex-1">
+            <div className="flex items-center justify-between border-b border-[var(--line)] px-4 py-2.5">
+              <span className="micro-label">Race control</span>
+              <span className="text-[10px] text-[var(--ink-3)]">official feed</span>
+            </div>
+            <RaceControlFeed sessionKey={focus?.sessionKey} limit={6} />
+          </section>
+          <section className="panel">
+            <div className="flex items-center justify-between border-b border-[var(--line)] px-4 py-2.5">
+              <span className="micro-label">Championship</span>
+              <Link href="/standings" className="text-[11px] text-[var(--accent)] hover:underline">
+                Full standings →
+              </Link>
+            </div>
+            <StandingsPreview />
+          </section>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert h-[14px] w-4"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={14}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
+      </div>
     </div>
   );
 }

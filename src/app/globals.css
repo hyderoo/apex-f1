@@ -1,26 +1,183 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-ink: var(--ink);
+  --color-ink-2: var(--ink-2);
+  --color-ink-3: var(--ink-3);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-surface-3: var(--surface-3);
+  --color-line: var(--line);
+  --color-line-2: var(--line-2);
+  --color-accent: var(--accent);
+  --color-accent-ink: var(--accent-ink);
+  --color-pb: var(--pb);
+  --color-sb: var(--sb);
+  --color-warn: var(--warn);
+  --color-ok: var(--ok);
+  --color-live: var(--live);
+  --font-display: var(--font-space-grotesk), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-jetbrains), ui-monospace, "SF Mono", monospace;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+:root {
+  --ink: #101216;
+  --ink-2: #3d434e;
+  --ink-3: #79808d;
+  --surface: #f5f4f1;
+  --surface-2: #ffffff;
+  --surface-3: #eae8e3;
+  --line: #d9d6cf;
+  --line-2: #c4c0b7;
+  --accent: #d90429;
+  --accent-ink: #ffffff;
+  --pb: #7c3aed;
+  --sb: #0e9f6e;
+  --warn: #b45309;
+  --ok: #0e9f6e;
+  --live: #d90429;
+  color-scheme: light;
+}
+
+.dark {
+  --ink: #ecedf0;
+  --ink-2: #a4aab6;
+  --ink-3: #666d7a;
+  --surface: #0b0c0f;
+  --surface-2: #121419;
+  --surface-3: #1a1d24;
+  --line: #23262e;
+  --line-2: #33373f;
+  --accent: #ff2442;
+  --accent-ink: #0b0c0f;
+  --pb: #a78bfa;
+  --sb: #34d399;
+  --warn: #fbbf24;
+  --ok: #34d399;
+  --live: #ff2442;
+  color-scheme: dark;
+}
+
+html {
+  background: var(--surface);
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--surface);
+  color: var(--ink);
+  font-family: var(--font-display);
+  font-feature-settings: "ss01" on;
+  -webkit-font-smoothing: antialiased;
+}
+
+.font-mono, code, kbd {
+  font-family: var(--font-mono);
+  font-feature-settings: "tnum" on, "zero" on;
+}
+
+/* Micro label: the workhorse eyebrow style */
+.micro-label {
+  font-size: 0.625rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  font-weight: 500;
+}
+
+/* Panel with corner tick marks — timing-wall aesthetic */
+.panel {
+  position: relative;
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+}
+.panel-ticks::before,
+.panel-ticks::after {
+  content: "";
+  position: absolute;
+  width: 7px;
+  height: 7px;
+  border-color: var(--ink-3);
+  border-style: solid;
+  pointer-events: none;
+}
+.panel-ticks::before {
+  top: -1px;
+  left: -1px;
+  border-width: 1px 0 0 1px;
+}
+.panel-ticks::after {
+  bottom: -1px;
+  right: -1px;
+  border-width: 0 1px 1px 0;
+}
+
+/* Live pulse dot */
+@keyframes live-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.35; }
+}
+.live-dot {
+  animation: live-pulse 1.4s ease-in-out infinite;
+}
+
+/* Skeleton shimmer */
+@keyframes shimmer {
+  0% { background-position: -400px 0; }
+  100% { background-position: 400px 0; }
+}
+.skeleton {
+  background: linear-gradient(90deg, var(--surface-2) 25%, var(--surface-3) 50%, var(--surface-2) 75%);
+  background-size: 800px 100%;
+  animation: shimmer 1.6s linear infinite;
+  border-radius: 2px;
+}
+
+/* Scrollbars */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--line-2) transparent;
+}
+*::-webkit-scrollbar { width: 8px; height: 8px; }
+*::-webkit-scrollbar-thumb { background: var(--line-2); border-radius: 0; }
+*::-webkit-scrollbar-track { background: transparent; }
+
+/* Timing table rows */
+.timing-row {
+  border-bottom: 1px solid var(--line);
+}
+.timing-row:hover {
+  background: var(--surface-3);
+}
+
+/* Number alignment for timing values */
+.tnum {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Subtle grid paper texture for hero/dashboard header */
+.blueprint {
+  background-image:
+    linear-gradient(var(--line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--line) 1px, transparent 1px);
+  background-size: 28px 28px;
+  background-position: -1px -1px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Focus visibility */
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+::selection {
+  background: var(--accent);
+  color: #fff;
 }
