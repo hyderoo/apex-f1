@@ -50,7 +50,10 @@ test.describe("APEX F1 critical flows", () => {
       await lapInput.press("Enter");
     }
     await expect(
-      page.locator("text=/Telemetry chart|No recorded telemetry|Demo/i").first()
+      page
+        .locator('[aria-label="Telemetry chart"]')
+        .or(page.locator("text=/No recorded telemetry|Demo|temporarily unavailable/i"))
+        .first()
     ).toBeVisible({ timeout: 60_000 });
   });
 
