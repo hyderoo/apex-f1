@@ -1,7 +1,7 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Play, Pause } from "lucide-react";
 import type {
   Driver, Envelope, GridSlot, Overtake, SessionResultEntry, TeamRadioClip,
@@ -19,6 +19,13 @@ interface ExtrasResponse {
 }
 
 export function SessionExtras({ sessionKey }: { sessionKey?: number }) {
+  // Defer the extras fetch so the leaderboard (the primary panel) gets the
+  // provider rate-limited budget first on a cold cache.
+  const [ready, setReady] = useState(false);
+  useEffect(() => {
+    const id = setTimeout(() => setReady(true), 3500);
+    return () => clearTimeout(id);
+  }, []);
   const query = useQuery<ExtrasResponse>({
     queryKey: ["session-extras", sessionKey],
     queryFn: async () => {
@@ -26,11 +33,11 @@ export function SessionExtras({ sessionKey }: { sessionKey?: number }) {
       if (!res.ok) throw new Error("session extras request failed");
       return res.json();
     },
-    enabled: sessionKey != null,
+    enabled: sessionKey != null && ready,
   });
 
   if (!sessionKey) return null;
-  if (query.isLoading) {
+  if (!ready || query.isLoading) {
     return <div className="grid grid-cols-1 gap-px bg-[var(--line)] p-px md:grid-cols-2"><Skeleton className="h-48" /><Skeleton className="h-48" /></div>;
   }
   if (query.isError || !query.data) {

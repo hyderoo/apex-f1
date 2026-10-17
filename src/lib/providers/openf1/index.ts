@@ -159,7 +159,7 @@ export class OpenF1Provider implements F1DataProvider {
     const params: Record<string, string | number> = { session_key: q.sessionKey };
     if (q.driverNumber != null) params.driver_number = q.driverNumber;
     if (q.lapNumber != null) params.lap_number = q.lapNumber;
-    const env = await this.get("laps", openF1LapSchema, params, { status: this.timingStatus(), staleAfterMs: 60_000 });
+    const env = await this.get("laps", openF1LapSchema, params, { status: this.timingStatus(), staleAfterMs: 60_000, revalidate: 120 });
     const data: Lap[] = env.data.map((l) => ({
       driverNumber: l.driver_number, lapNumber: l.lap_number, dateStart: l.date_start,
       lapDuration: l.lap_duration, durationSector1: l.duration_sector_1,
@@ -174,7 +174,7 @@ export class OpenF1Provider implements F1DataProvider {
   async stints(q: SessionQuery) {
     const params: Record<string, string | number> = { session_key: q.sessionKey };
     if (q.driverNumber != null) params.driver_number = q.driverNumber;
-    const env = await this.get("stints", openF1StintSchema, params, { status: "historical", staleAfterMs: 60_000 });
+    const env = await this.get("stints", openF1StintSchema, params, { status: "historical", staleAfterMs: 60_000, revalidate: 300 });
     const data: Stint[] = env.data.map((s) => ({
       driverNumber: s.driver_number, stintNumber: s.stint_number,
       lapStart: s.lap_start, lapEnd: s.lap_end, compound: s.compound,
@@ -186,7 +186,7 @@ export class OpenF1Provider implements F1DataProvider {
   async pitStops(q: SessionQuery) {
     const params: Record<string, string | number> = { session_key: q.sessionKey };
     if (q.driverNumber != null) params.driver_number = q.driverNumber;
-    const env = await this.get("pit", openF1PitSchema, params, { status: "historical", staleAfterMs: 60_000 });
+    const env = await this.get("pit", openF1PitSchema, params, { status: "historical", staleAfterMs: 60_000, revalidate: 300 });
     const data: PitStop[] = env.data.map((p) => ({
       driverNumber: p.driver_number, date: p.date, lapNumber: p.lap_number,
       pitDuration: p.pit_duration,
@@ -197,7 +197,7 @@ export class OpenF1Provider implements F1DataProvider {
   async positions(q: SessionQuery) {
     const params: Record<string, string | number> = { session_key: q.sessionKey };
     if (q.driverNumber != null) params.driver_number = q.driverNumber;
-    const env = await this.get("position", openF1PositionSchema, params, { status: this.timingStatus(), staleAfterMs: 30_000 });
+    const env = await this.get("position", openF1PositionSchema, params, { status: this.timingStatus(), staleAfterMs: 30_000, revalidate: 60 });
     const data: PositionPoint[] = env.data.map((p) => ({
       driverNumber: p.driver_number, date: p.date, position: p.position,
     }));
@@ -207,7 +207,7 @@ export class OpenF1Provider implements F1DataProvider {
   async intervals(q: SessionQuery) {
     const params: Record<string, string | number> = { session_key: q.sessionKey };
     if (q.driverNumber != null) params.driver_number = q.driverNumber;
-    const env = await this.get("intervals", openF1IntervalSchema, params, { status: this.timingStatus(), staleAfterMs: 30_000 });
+    const env = await this.get("intervals", openF1IntervalSchema, params, { status: this.timingStatus(), staleAfterMs: 30_000, revalidate: 60 });
     const data: IntervalPoint[] = env.data.map((i) => ({
       driverNumber: i.driver_number, date: i.date,
       gapToLeader: i.gap_to_leader, interval: i.interval,
@@ -243,7 +243,7 @@ export class OpenF1Provider implements F1DataProvider {
   }
 
   async weather(q: SessionQuery) {
-    const env = await this.get("weather", openF1WeatherSchema, { session_key: q.sessionKey }, { status: "historical", staleAfterMs: 300_000 });
+    const env = await this.get("weather", openF1WeatherSchema, { session_key: q.sessionKey }, { status: "historical", staleAfterMs: 300_000, revalidate: 300 });
     const data: WeatherObservation[] = env.data.map((w) => ({
       date: w.date, airTemperature: w.air_temperature,
       trackTemperature: w.track_temperature, humidity: w.humidity,
@@ -254,7 +254,7 @@ export class OpenF1Provider implements F1DataProvider {
   }
 
   async raceControl(q: SessionQuery) {
-    const env = await this.get("race_control", openF1RaceControlSchema, { session_key: q.sessionKey }, { status: "historical", staleAfterMs: 60_000 });
+    const env = await this.get("race_control", openF1RaceControlSchema, { session_key: q.sessionKey }, { status: "historical", staleAfterMs: 60_000, revalidate: 300 });
     const data: RaceControlMessage[] = env.data.map((r) => ({
       date: r.date, category: r.category, flag: r.flag, scope: r.scope,
       sector: r.sector, message: r.message, lapNumber: r.lap_number,
