@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { TeamIdentity } from "@/components/identity/team-identity";
 import { usePrefs } from "@/components/preferences";
 import { Star } from "lucide-react";
 
@@ -44,7 +45,7 @@ export default function FavoritesPage() {
             <div className="flex flex-wrap gap-2">
               {prefs.favoriteTeams.map((t) => (
                 <span key={t} className="panel flex items-center gap-2 px-3 py-1.5 text-sm">
-                  <Link href={`/teams/${encodeURIComponent(t)}`} className="hover:text-[var(--accent)]">{t}</Link>
+                  <Link href={`/teams/${encodeURIComponent(t)}`} className="hover:text-[var(--accent)]"><TeamIdentity name={t} size="standard" /></Link>
                   <button onClick={() => toggleFavorite("team", t)} aria-label="Remove" className="text-[var(--ink-3)] hover:text-[var(--accent)]">
                     <Star size={12} fill="currentColor" />
                   </button>

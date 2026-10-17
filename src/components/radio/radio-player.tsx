@@ -3,6 +3,8 @@
 import { useEffect, useRef, useState } from "react";
 import type { RadioClipView, RadioDriverGroup } from "@/lib/radio";
 import { hexToRgba } from "@/lib/utils/format";
+import { teamBadge } from "@/lib/assets/team-badges";
+import { TeamBadge } from "@/components/identity/team-badge";
 
 function fmtClock(iso: string) {
   return `${iso.slice(11, 19)}`;
@@ -71,10 +73,12 @@ export function RadioPlayer({ groups }: { groups: RadioDriverGroup[] }) {
     <div className="grid grid-cols-1 gap-px bg-[var(--line)] lg:grid-cols-2">
       {groups.map((g) => {
         const colour = `#${g.teamColour}`;
+        const badge = teamBadge(g.teamName);
         return (
           <section key={g.driverNumber} className="panel">
             <header className="flex items-center gap-2.5 border-b border-[var(--line)] px-3 py-2">
               <span className="h-4 w-1 shrink-0" style={{ background: colour }} />
+              {badge && <TeamBadge url={badge.url} name={g.teamName} px={20}>{null}</TeamBadge>}
               <span className="font-mono text-xs font-bold" style={{ color: colour }}>{g.acronym}</span>
               <span className="truncate text-sm font-medium">{g.fullName}</span>
               <span className="truncate text-[11px] text-[var(--ink-3)]">{g.teamName}</span>

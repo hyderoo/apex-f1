@@ -8,6 +8,8 @@ import { isStale, relativeAge } from "@/lib/utils/time";
 import { DataStatusBadge } from "@/components/ui/badge";
 import { TimingTowerSkeleton } from "@/components/ui/skeleton";
 import { DriverAvatar } from "@/components/identity/driver-identity";
+import { teamBadge as badgeFor } from "@/lib/assets/team-badges";
+import { TeamBadge } from "@/components/identity/team-badge";
 import { Term } from "@/components/ui/tooltip-term";
 import { usePrefs } from "@/components/preferences";
 import { hexToRgba } from "@/lib/utils/format";
@@ -210,7 +212,10 @@ function TimingRow({
           />
           <DriverAvatar src={r.headshotUrl} acronym={r.acronym} teamColour={r.teamColour} size={22} />
           <span className="font-mono text-[13px] font-semibold" title={r.fullName}>{r.acronym}</span>
-          <span className="hidden text-[11px] text-[var(--ink-3)] lg:inline">{r.teamName}</span>
+          <span className="hidden items-center gap-1.5 text-[11px] text-[var(--ink-3)] lg:inline-flex">
+            {badgeFor(r.teamName) && <TeamBadge url={badgeFor(r.teamName)!.url} name={r.teamName} px={16}>{null}</TeamBadge>}
+            {r.teamName}
+          </span>
         </div>
       </td>
       {cols.includes("lastLap") && <td className={cell}>{formatLapTime(r.lastLap)}</td>}

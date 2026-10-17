@@ -4,8 +4,8 @@ import Link from "next/link";
 import { useState } from "react";
 import { Star } from "lucide-react";
 import type { Driver } from "@/lib/domain/types";
-import { hexToRgba } from "@/lib/utils/format";
 import { DriverAvatar } from "@/components/identity/driver-identity";
+import { TeamIdentity } from "@/components/identity/team-identity";
 import { CountryFlag } from "@/components/identity/country-flag";
 import { usePrefs } from "@/components/preferences";
 import { cn } from "@/lib/utils/cn";
@@ -56,9 +56,8 @@ export function DriverGrid({ drivers }: { drivers: Driver[] }) {
               <div className="mt-3 text-base font-semibold leading-tight">
                 {d.firstName} <span className="uppercase">{d.lastName}</span>
               </div>
-              <div className="mt-0.5 flex items-center gap-1.5 text-xs text-[var(--ink-3)]">
-                <span className="inline-block h-2.5 w-2.5 rounded-[2px]" style={{ background: hexToRgba(`#${d.teamColour.replace("#", "")}`) }} />
-                {d.teamName}
+              <div className="mt-0.5">
+                <TeamIdentity name={d.teamName} colour={d.teamColour} size="standard" />
               </div>
             </Link>
           </div>
