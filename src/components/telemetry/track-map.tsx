@@ -12,11 +12,13 @@ interface OutlinePoint { x: number; y: number }
 export function TrackMap({
   outline,
   markers,
+  annotations,
   speedColor = false,
   samples,
 }: {
   outline: OutlinePoint[];
   markers?: { x: number; y: number; color: string; label: string }[];
+  annotations?: { x: number; y: number; label: string; tone: "corner" | "sector" }[];
   speedColor?: boolean;
   samples?: { x: number; y: number; speed: number | null }[];
 }) {
@@ -66,6 +68,20 @@ export function TrackMap({
           </g>
         );
       })()}
+      {(annotations ?? []).map((a, i) => {
+        const q = projection.project(a.x, a.y);
+        return a.tone === "sector" ? (
+          <g key={`ann-${i}`}>
+            <line x1={q.x - 5} y1={q.y - 5} x2={q.x + 5} y2={q.y + 5} stroke="var(--accent)" strokeWidth={2} />
+            <text x={q.x + 8} y={q.y - 6} fill="var(--accent)" fontSize={10} fontFamily="var(--font-mono)">{a.label}</text>
+          </g>
+        ) : (
+          <g key={`ann-${i}`}>
+            <circle cx={q.x} cy={q.y} r={7} fill="var(--surface)" stroke="var(--ink-2)" strokeWidth={1} />
+            <text x={q.x} y={q.y + 3} textAnchor="middle" fill="var(--ink)" fontSize={9} fontFamily="var(--font-mono)">{a.label}</text>
+          </g>
+        );
+      })}
       {(markers ?? []).map((m, i) => {
         const q = projection.project(m.x, m.y);
         return (

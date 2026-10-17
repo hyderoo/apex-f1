@@ -2,7 +2,8 @@
 
 import { useQuery, keepPreviousData } from "@tanstack/react-query";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { detectCorners, sectorBoundaryTimes } from "@/lib/telemetry/corners";
+import { useEffect, useMemo, useState } from "react";
 import { TelemetryChart, type ChannelPoint } from "./telemetry-chart";
 import { TrackMap } from "./track-map";
 import { DataStatusBadge } from "@/components/ui/badge";
@@ -22,8 +23,9 @@ interface TelemetryResponse {
       brakingZones: { startDistance: number; endDistance: number }[];
       gearChanges: { distance: number; from: number; to: number }[];
     };
-    trackOutline?: { x: number; y: number; t?: number }[];
+    trackOutline?: { x: number; y: number; t?: number; distance?: number }[];
     lapTime?: number | null;
+    sectors?: (number | null)[] | null;
     error?: string;
     demoNote?: string | null;
   }>;
@@ -81,7 +83,28 @@ export function TelemetryExplorer({
   const d1Data = query.data?.drivers?.[String(d1)];
   const d2Data = d2 ? query.data?.drivers?.[String(d2)] : undefined;
   const [noTelemetrySessions, setNoTelemetrySessions] = useState<Set<number>>(new Set());
-  const outline = (d1Data?.trackOutline ?? d2Data?.trackOutline ?? []) as { x: number; y: number; t?: number }[];
+  const outline = (d1Data?.trackOutline ?? d2Data?.trackOutline ?? []) as { x: number; y: number; t?: number; distance?: number }[];
+  const mapAnnotations = useMemo(() => {
+    if (outline.length < 60) return undefined;
+    const out: { x: number; y: number; label: string; tone: "corner" | "sector" }[] = [];
+    // sector boundaries from the recorded sector times of this lap (driver A)
+    const bounds = sectorBoundaryTimes(d1Data?.sectors);
+    if (bounds) {
+      for (const [bi, label] of [[0, "S2"], [1, "S3"]] as const) {
+        const target = bounds[bi];
+        let best: (typeof outline)[number] | null = null;
+        for (const p of outline) {
+          if (p.t == null) continue;
+          if (!best || Math.abs((p.t ?? 0) - target) < Math.abs((best.t ?? 0) - target)) best = p;
+        }
+        if (best && best.t != null && Math.abs(best.t - target) < 3000) out.push({ x: best.x, y: best.y, label, tone: "sector" });
+      }
+    }
+    // corner numbers from recorded GPS curvature (approximate, labelled)
+    const corners = detectCorners(outline);
+    for (const c of corners) out.push({ x: c.x, y: c.y, label: String(c.number), tone: "corner" });
+    return out.length ? out : undefined;
+  }, [outline, d1Data?.sectors]);
   const replayDrivers = [d1, d2]
     .filter((n): n is number => n != null)
     .map((n) => ({ n, pts: (query.data?.drivers?.[String(n)]?.trackOutline ?? []).filter((p) => p.t != null) as { t: number; x: number; y: number; distance?: number }[] }))
@@ -247,6 +270,7 @@ export function TelemetryExplorer({
               <div className="p-3">
                 <TrackMap
                   outline={outline}
+                  annotations={mapAnnotations}
                   speedColor
                   samples={(d1Data?.points ?? [])
                     .filter((p) => p.distance != null)
@@ -258,7 +282,9 @@ export function TelemetryExplorer({
                 />
                 <p className="mt-2 text-[10px] leading-snug text-[var(--ink-3)]">
                   Outline from recorded GPS points of this lap. Sector boundaries
-                  and corner numbers are shown only when reliable data exists.
+                  come from the recorded sector times of this lap; corner numbers
+                  are derived from GPS curvature and are approximate. Both appear
+                  only when the underlying recorded data is reliable enough.
                 </p>
               </div>
             </section>

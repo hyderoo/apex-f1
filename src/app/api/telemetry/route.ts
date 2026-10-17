@@ -94,6 +94,10 @@ export async function GET(req: NextRequest) {
       metrics: deriveMetrics(joined),
       trackOutline: downsample(series, 500),
       lapTime: laps.find((l) => l.lapNumber === lapNumber)?.lapDuration ?? null,
+      sectors: (() => {
+        const lap = laps.find((l) => l.lapNumber === lapNumber);
+        return lap ? [lap.durationSector1, lap.durationSector2, lap.durationSector3] : null;
+      })(),
       demoNote,
     };
   }
