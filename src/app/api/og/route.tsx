@@ -1,6 +1,7 @@
 import { ImageResponse } from "next/og";
 import type { NextRequest } from "next/server";
 import { fetchDriverStandings } from "@/lib/providers/jolpica";
+import { getCurrentDrivers } from "@/lib/f1/drivers";
 
 export const runtime = "nodejs";
 
@@ -67,8 +68,15 @@ export async function GET(req: NextRequest) {
     const a = (req.nextUrl.searchParams.get("a") ?? "").toUpperCase();
     const b = (req.nextUrl.searchParams.get("b") ?? "").toUpperCase();
     try {
-      const standings = await fetchDriverStandings(season);
+      const [standings, current] = await Promise.all([
+        fetchDriverStandings(season),
+        getCurrentDrivers().catch(() => ({ drivers: [] })),
+      ]);
       const rows = standings.data;
+      // Team colours come from OpenF1 driver metadata, keyed by family name.
+      const colourByName = new Map(
+        current.drivers.map((d) => [d.fullName.split(" ").pop()!.toUpperCase(), d.teamColour]),
+      );
       const find = (code: string) =>
         rows.find((r) => r.code?.toUpperCase() === code || r.driverId.toUpperCase() === code.toLowerCase().replace(/ /g, "_") || r.familyName.toUpperCase() === code);
       const ra = find(a);
@@ -82,7 +90,7 @@ export async function GET(req: NextRequest) {
             number={r.permanentNumber !== null ? String(r.permanentNumber) : "—"}
             points={String(r.points)}
             position={String(r.position)}
-            colour="e10600"
+            colour={colourByName.get(r.familyName.toUpperCase()) ?? "e10600"}
           />
         );
         return new ImageResponse(

@@ -1,4 +1,5 @@
-import { fetchConstructorStandings, fetchDriverStandings } from "@/lib/providers/jolpica";
+import { fetchConstructorStandings, fetchDriverStandings, fetchSeasonCalendar } from "@/lib/providers/jolpica";
+import { WhatIfPanel } from "@/components/standings/whatif-panel";
 import { getCurrentDrivers } from "@/lib/f1/drivers";
 import { CountryFlag } from "@/components/identity/country-flag";
 import { TeamIdentity } from "@/components/identity/team-identity";
@@ -36,6 +37,18 @@ export default async function StandingsPage() {
   const constructorNameById = new Map(
     (constructors?.data ?? []).map((c) => [c.constructorId, c.name]),
   );
+  // Remaining rounds (races + sprint sessions) from the Jolpica calendar.
+  const calendar = await fetchSeasonCalendar(SEASON_YEAR).catch(() => null);
+  const nowMs = Date.now();
+  const remaining = { races: 0, sprints: 0, completed: 0 };
+  for (const round of calendar?.data ?? []) {
+    const done = new Date(round.date).getTime() <= nowMs;
+    if (done) remaining.completed++;
+    else {
+      remaining.races++;
+      if (round.sessions.some((sn) => /sprint/i.test(sn.name))) remaining.sprints++;
+    }
+  }
   return (
     <div>
       <PageHeader
@@ -133,6 +146,17 @@ export default async function StandingsPage() {
             </div>
             <PointsProgression />
           </section>
+          <div className="xl:col-span-2">
+            <WhatIfPanel
+              standings={drivers.data.map((d) => ({
+                driverId: d.driverId, familyName: d.familyName, code: d.code,
+                position: d.position, points: d.points, constructorIds: d.constructorIds,
+              }))}
+              remainingRaces={remaining.races}
+              remainingSprints={remaining.sprints}
+              roundsCompleted={remaining.completed}
+            />
+          </div>
         </div>
       )}
     </div>
