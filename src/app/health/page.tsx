@@ -53,7 +53,7 @@ export default async function HealthPage() {
       <PageHeader
         eyebrow="System"
         title="Data Health"
-        description="Live checks against every provider this app depends on. Nothing here is assumed — each row is a real request, made now."
+        description="Live checks against every provider this app depends on. Nothing here is assumed — each row is a real request (probe results cache for up to 5 minutes)."
         status={p.openf1?.ok ? "historical" : "unavailable"}
         updatedAt={h.now}
       />
