@@ -73,6 +73,9 @@ export default async function TeamsPage() {
           );
         })}
       </div>
+      <p className="mt-4 text-[11px] text-[var(--ink-3)]">
+        Team badges via <a href="https://www.thesportsdb.com" className="underline hover:text-[var(--ink-2)]" target="_blank" rel="noreferrer">TheSportsDB</a>, used as-is; badges are the teams&apos; trademarks.
+      </p>
     </div>
   );
 }

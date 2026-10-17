@@ -26,7 +26,7 @@ telemetry charts are documented approximations derived from recorded GPS points
 | --- | --- | --- |
 | Driver portraits, circuit imagery, host-country flags | F1 media CDN, URLs supplied by the OpenF1 API (`headshot_url`, `circuit_image`, `country_flag`) | Hotlinked from the provider-supplied URL only — never re-hosted, never constructed or guessed. Every image has a designed fallback (typographic monogram or code badge). |
 | Driver nationality flags | [flagcdn.com](https://flagpedia.net/download/api) | Free for embedding; credit link appreciated — flag images served by [Flagpedia](https://flagpedia.net). |
-| Team identities | Typographic word-marks rendered in CSS | No licensed programmatic source of team logos exists; intentional text marks instead of unofficial files. |
+| Team badges | [TheSportsDB](https://www.thesportsdb.com) (`r2.thesportsdb.com`) | Hotlinked, used "as is" per their [terms of use](https://www.thesportsdb.com/docs_terms_of_use.php) with this credit. Badges remain the teams' trademarks — identification use in a non-commercial portfolio. Mapping verified against their Formula 1 league listing (`src/lib/assets/team-badges.ts`); a designed typographic mark is the fallback for missing/failed badges. |
 
 Sourcing rules live in `src/lib/assets/manifest.ts`. No AI-generated or
 fabricated imagery; no scraped logos.

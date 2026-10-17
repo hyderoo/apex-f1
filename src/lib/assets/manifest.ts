@@ -9,9 +9,10 @@
  * - Driver nationality flags: flagcdn.com — free embedding service, terms
  *   verified at https://flagcdn.com ("free to embed on your website"),
  *   credit to flagpedia.net is noted in README and the settings page.
- * - Team logos: no licensed programmatic source exists. Teams get a designed
- *   typographic mark (TeamIdentity) in their authentic team colour instead
- *   of a fake or scraped logo. This is intentional, not a missing asset.
+ * - Team badges: TheSportsDB (thesportsdb.com), hotlinked "as is" per their
+ *   terms with attribution (Teams page + README); mapping verified against
+ *   their Formula 1 league listing in src/lib/assets/team-badges.ts.
+ *   The designed typographic mark (TeamIdentity) remains the fallback.
  */
 
 /** ISO 3166-1 alpha-3 (OpenF1 country_code) to alpha-2 (flagcdn) for F1 nationalities. */
