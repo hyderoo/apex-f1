@@ -115,8 +115,9 @@ export default function SettingsPage() {
             Timing, telemetry, weather and race control: OpenF1 (openf1.org).
             Schedule, results and standings: Jolpica F1 API. Every panel shows a
             provenance badge: LIVE, DELAYED, HISTORICAL, DEMO DATA or
-            UNAVAILABLE. A data health report is at{" "}
-            <a href="/api/health" className="text-[var(--accent)] underline">/api/health</a>.
+            UNAVAILABLE. Provider status and live probes are on the{" "}
+            <a href="/health" className="text-[var(--accent)] underline">Data Health</a> page
+            (raw JSON at <a href="/api/health" className="text-[var(--accent)] underline">/api/health</a>).
           </p>
           <p className="mt-2 text-xs leading-relaxed text-[var(--ink-3)]">
             Driver portraits and circuit imagery are hotlinked from URLs supplied
