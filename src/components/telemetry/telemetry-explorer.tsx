@@ -408,7 +408,7 @@ function LapReplay({ drivers, delta }: { drivers: { points: { t: number; x: numb
         <span className="font-mono text-[11px] tnum text-[var(--ink-2)]">{fmt(t)} / {fmt(maxT)}</span>
         {deltaReadout && (
           <span
-            className="border border-[var(--line)] bg-[var(--surface-2)] px-2 py-0.5 font-mono text-[11px] tnum text-[var(--accent)]"
+            className="whitespace-nowrap border border-[var(--line)] bg-[var(--surface-2)] px-2 py-0.5 font-mono text-[11px] tnum text-[var(--accent)]"
             title="Gap at the second driver's current track position, interpolated from recorded lap timing"
           >
             Δ {deltaReadout}

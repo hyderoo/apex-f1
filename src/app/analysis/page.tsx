@@ -88,7 +88,7 @@ function RaceStory({ results }: { results: RaceResultRow[] }) {
   const p2 = classified.find((r) => r.position === 2);
   const p3 = classified.find((r) => r.position === 3);
   const fl = results.find((r) => r.fastestLap);
-  const isRunning = (r: RaceResultRow) => r.status === "Finished" || r.status.startsWith("+");
+  const isRunning = (r: RaceResultRow) => r.status === "Finished" || r.status === "Lapped" || r.status.startsWith("+");
   const finishers = results.filter(isRunning);
   const retirements = results.filter((r) => !isRunning(r));
   const movers = classified
@@ -100,14 +100,18 @@ function RaceStory({ results }: { results: RaceResultRow[] }) {
   const sentences: string[] = [];
   if (winner) {
     let s = `${name(winner)} won the race for ${winner.constructorName}`;
-    if (p2?.time) s += `, ${p2.time.replace(/^\+/, "")} ahead of ${name(p2)}`;
+    if (p2?.time) s += `, ${p2.time.replace(/^\+/, "")}s ahead of ${name(p2)}`;
     if (p3) s += `, with ${name(p3)} completing the podium`;
     sentences.push(s + ".");
   }
   if (fl) sentences.push(`${name(fl)} set the fastest lap.`);
   if (gained) sentences.push(`Biggest drive forward: ${name(gained.r)}, from P${gained.r.grid} to P${gained.r.position} (+${gained.gained} places).`);
   if (lost) sentences.push(`Toughest afternoon: ${name(lost.r)}, from P${lost.r.grid} to P${lost.r.position} (${lost.gained} places).`);
-  sentences.push(`${finishers.length} of ${results.length} drivers reached the flag${retirements.length ? `; ${retirements.length} recorded as not finishing (${[...new Set(retirements.map((r) => r.status))].join(", ")})` : ""}.`);
+    if (retirements.length) {
+      sentences.push(`${finishers.length} of ${results.length} drivers were classified at the flag; ${retirements.length} recorded as not finishing (${[...new Set(retirements.map((r) => r.status))].join(", ")}).`);
+    } else {
+      sentences.push(`All ${results.length} drivers were classified at the flag.`);
+    }
 
   return (
     <div className="px-4 py-3">

@@ -229,9 +229,13 @@ session, an explicit notice replaces the map — never a fake outline.
 
 - **Unit (vitest)**: leaderboard assembly, timezone conversion, session
   status, lap-time formatting, telemetry join/delta/downsampling, track
-  projection, retry/staleness helpers. Current suite: 37 tests.
+  projection, retry/staleness helpers. Current suite: 48 tests.
 - **E2E (Playwright)**: dashboard load, calendar navigation, session open,
-  driver profile, telemetry lap selection, demo-mode labeling. See `tests/e2e`.
+  driver profile, telemetry lap selection, demo-mode labeling, image
+  fallbacks, labelling and credential-free startup. Current suite: 10 specs.
+- **CI (GitHub Actions)**: `.github/workflows/ci.yml` runs ESLint, strict
+  `tsc`, vitest, a production build and the Playwright suite on every push
+  to `main` and every PR; the README badge reflects the latest run.
 - **Honesty gate**: no test may assert data we fabricated; demo fixtures are
   real recorded payloads.
 

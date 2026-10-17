@@ -3,8 +3,8 @@
 [![CI](https://github.com/hyderoo/apex-f1/actions/workflows/ci.yml/badge.svg)](https://github.com/hyderoo/apex-f1/actions/workflows/ci.yml)
 
 A live Formula 1 intelligence dashboard for the **2026 FIA Formula One World Championship**.
-Timing tower, telemetry lab, tyre strategy, race control, weather, standings and
-season calendar — built on real, attributable data with every panel labelled by
+Timing tower, telemetry lab, tyre strategy, race control, weather, standings,
+season calendar, a data health monitor and race analysis — built on real, attributable data with every panel labelled by
 its provenance: **LIVE · DELAYED · HISTORICAL · DEMO DATA · UNAVAILABLE**.
 
 ## Data sources & honesty model
@@ -167,4 +167,10 @@ the app running without optional provider credentials.
 - Driver headshots link to formula1.com media URLs provided by OpenF1; missing
   images render a monogram fallback.
 - Race replay reconstructs motion by interpolating between recorded GPS points
-  and is labelled as such; it never fabricates positions.
+  and is labelled as such; it never fabricates positions. The delta readout
+  during replay is interpolated from recorded lap timing, not simulated.
+- The race story summary on Race Analysis is derived only from the recorded
+  classification (positions, grid, status, fastest-lap flag); it contains no
+  inferred events or editorialising.
+- The Data Health page (`/health`) reports live probe results (OpenF1,
+  Jolpica, Supabase) and configuration state; raw JSON at `/api/health`.
