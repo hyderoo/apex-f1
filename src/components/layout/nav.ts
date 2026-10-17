@@ -1,5 +1,5 @@
 import {
-  Calendar, Flag, Gauge, LayoutDashboard, Search, Trophy, Users, Wrench, LineChart, Star, CircleDot, Activity, HeartPulse,
+  Calendar, Flag, Gauge, LayoutDashboard, Search, Trophy, Users, Wrench, LineChart, Star, CircleDot, Activity, HeartPulse, Radio,
 } from "lucide-react";
 
 export const NAV_ITEMS = [
@@ -11,6 +11,7 @@ export const NAV_ITEMS = [
   { href: "/teams", label: "Teams", icon: Wrench },
   { href: "/circuits", label: "Circuits", icon: CircleDot },
   { href: "/telemetry", label: "Telemetry", icon: Gauge },
+  { href: "/radio", label: "Team Radio", icon: Radio },
   { href: "/strategy", label: "Strategy", icon: Flag },
   { href: "/analysis", label: "Race Analysis", icon: LineChart },
   { href: "/favorites", label: "Favorites", icon: Star },
