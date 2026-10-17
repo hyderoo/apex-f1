@@ -5,6 +5,8 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { PageHeader } from "@/components/layout/page-header";
 import { hexToRgba } from "@/lib/utils/format";
+import { TeamIdentity } from "@/components/identity/team-identity";
+import { DriverAvatar } from "@/components/identity/driver-identity";
 
 export const dynamic = "force-dynamic";
 
@@ -50,6 +52,7 @@ export default async function TeamPage({
               className="h-12 w-1"
               style={{ background: hexToRgba(`#${(team?.colour ?? "8a8f98").replace("#", "")}`) }}
             />
+            <TeamIdentity name={team?.name ?? name} colour={team?.colour} size="featured" />
             <div>
               <div className="font-mono text-xl font-bold tnum">
                 {standing ? `P${standing.position}` : "—"}
@@ -66,7 +69,10 @@ export default async function TeamPage({
                 href={`/drivers/${d.driverNumber}`}
                 className="flex items-center justify-between border border-[var(--line)] px-3 py-2 hover:bg-[var(--surface-3)]"
               >
-                <span className="text-sm">{d.fullName}</span>
+                <span className="flex items-center gap-2 text-sm">
+                  <DriverAvatar src={d.headshotUrl} acronym={d.acronym} teamColour={d.teamColour} size={24} />
+                  {d.fullName}
+                </span>
                 <span className="font-mono text-xs text-[var(--ink-3)] tnum">#{d.driverNumber}</span>
               </Link>
             ))}

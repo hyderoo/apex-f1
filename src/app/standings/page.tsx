@@ -1,4 +1,8 @@
 import { fetchConstructorStandings, fetchDriverStandings } from "@/lib/providers/jolpica";
+import { getCurrentDrivers } from "@/lib/f1/drivers";
+import { CountryFlag } from "@/components/identity/country-flag";
+import { TeamIdentity } from "@/components/identity/team-identity";
+import { DRIVER_NATIONALITY_2026 } from "@/lib/assets/manifest";
 import { SEASON_YEAR } from "@/lib/f1/season";
 import { PageHeader } from "@/components/layout/page-header";
 import { EmptyState } from "@/components/ui/empty";
@@ -18,6 +22,20 @@ export default async function StandingsPage() {
   } catch {
     /* fall through to empty state */
   }
+  // Team colours come from OpenF1 driver metadata; match Jolpica constructor
+  // names fuzzily (e.g. "Red Bull" vs "Red Bull Racing").
+  const { drivers: currentDrivers } = await getCurrentDrivers().catch(() => ({ drivers: [] }));
+  const colourFor = (name: string): string | null => {
+    const n = name.toLowerCase();
+    const hit = currentDrivers.find((d) => {
+      const t = d.teamName.toLowerCase();
+      return t === n || t.includes(n) || n.includes(t);
+    });
+    return hit?.teamColour ?? null;
+  };
+  const constructorNameById = new Map(
+    (constructors?.data ?? []).map((c) => [c.constructorId, c.name]),
+  );
   return (
     <div>
       <PageHeader
@@ -55,11 +73,24 @@ export default async function StandingsPage() {
                   <tr key={d.driverId} className="timing-row">
                     <td className="px-3 py-1.5 text-center font-mono text-xs text-[var(--ink-3)]">{d.position}</td>
                     <td className="px-2 py-1.5 text-sm">
-                      <a href={`/drivers/${d.permanentNumber ?? d.driverId}`} className="hover:text-[var(--accent)]">
-                        {d.givenName} <span className="font-semibold">{d.familyName}</span>
+                      <a href={`/drivers/${d.permanentNumber ?? d.driverId}`} className="inline-flex items-center gap-2 hover:text-[var(--accent)]">
+                        <CountryFlag alpha3={DRIVER_NATIONALITY_2026[d.permanentNumber ?? -1]} size={14} />
+                        <span>
+                          {d.givenName} <span className="font-semibold">{d.familyName}</span>
+                        </span>
                       </a>
                     </td>
-                    <td className="px-2 py-1.5 text-xs text-[var(--ink-3)]">{d.constructorIds.join(", ")}</td>
+                    <td className="px-2 py-1.5 text-xs text-[var(--ink-3)]">
+                      {d.constructorIds.map((id) => {
+                        const nm = constructorNameById.get(id) ?? id;
+                        return (
+                          <span key={id} className="mr-2 inline-flex items-center gap-1.5 align-middle">
+                            <TeamIdentity name={nm} colour={colourFor(nm)} size="compact" />
+                            <span>{nm}</span>
+                          </span>
+                        );
+                      })}
+                    </td>
                     <td className="px-2 py-1.5 text-right font-mono text-xs tnum">{d.wins}</td>
                     <td className="px-3 py-1.5 text-right font-mono text-sm font-semibold tnum">{d.points}</td>
                   </tr>
@@ -84,7 +115,11 @@ export default async function StandingsPage() {
                 {(constructors?.data ?? []).map((c) => (
                   <tr key={c.constructorId} className="timing-row">
                     <td className="px-3 py-1.5 text-center font-mono text-xs text-[var(--ink-3)]">{c.position}</td>
-                    <td className="px-2 py-1.5 text-sm font-medium">{c.name}</td>
+                    <td className="px-2 py-1.5 text-sm font-medium">
+                      <a href={`/teams/${encodeURIComponent(c.name)}`} className="hover:text-[var(--accent)]">
+                        <TeamIdentity name={c.name} colour={colourFor(c.name)} size="standard" className="font-medium" />
+                      </a>
+                    </td>
                     <td className="px-2 py-1.5 text-right font-mono text-xs tnum">{c.wins}</td>
                     <td className="px-3 py-1.5 text-right font-mono text-sm font-semibold tnum">{c.points}</td>
                   </tr>

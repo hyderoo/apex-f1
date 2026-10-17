@@ -5,6 +5,9 @@ import { notFound } from "next/navigation";
 import { PageHeader } from "@/components/layout/page-header";
 import { hexToRgba } from "@/lib/utils/format";
 import { Badge } from "@/components/ui/badge";
+import { DriverAvatar } from "@/components/identity/driver-identity";
+import { CountryFlag } from "@/components/identity/country-flag";
+import { DRIVER_NATIONALITY_2026 } from "@/lib/assets/manifest";
 
 export const dynamic = "force-dynamic";
 
@@ -52,10 +55,22 @@ export default async function DriverPage({
               <div className="font-mono text-3xl font-bold tnum">{driver?.driverNumber ?? standing?.permanentNumber}</div>
               <div className="text-xs text-[var(--ink-3)]">{driver?.acronym ?? standing?.code}</div>
             </div>
-            {driver?.headshotUrl && (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={driver.headshotUrl} alt={name} className="ml-auto h-16 w-16 rounded-full object-cover" />
-            )}
+            <span className="ml-auto">
+              <DriverAvatar
+                src={driver?.headshotUrl}
+                acronym={driver?.acronym ?? standing?.code ?? "?"}
+                teamColour={driver?.teamColour}
+                size={72}
+              />
+            </span>
+          </div>
+          <div className="mt-2 flex items-center gap-2 text-xs text-[var(--ink-3)]">
+            <CountryFlag
+              alpha3={driver?.countryCode ?? DRIVER_NATIONALITY_2026[driver?.driverNumber ?? standing?.permanentNumber ?? -1]}
+              size={16}
+              showName
+            />
+            {driver?.teamName && <span>· {driver.teamName}</span>}
           </div>
           <div className="mt-4 grid grid-cols-2 gap-px bg-[var(--line)]">
             {[
