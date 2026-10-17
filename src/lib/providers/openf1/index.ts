@@ -17,8 +17,8 @@ import {
 } from "./schemas";
 
 const BASE = "https://api.openf1.org/v1";
-/** Free tier is roughly 3 req/s, 30 req/min — stay well under. */
-const limiter = new RateLimiter(3, 1000);
+/** Free tier is roughly 3 req/s, 30 req/min — stay under with margin. */
+const limiter = new RateLimiter(2, 1000);
 
 export function sessionStatus(s: { date_start: string | null; date_end: string | null; is_cancelled?: boolean }, now = new Date()): SessionStatus {
   if (s.is_cancelled) return "cancelled";
@@ -66,9 +66,13 @@ export class OpenF1Provider implements F1DataProvider {
     params: Record<string, string | number>,
     opts: { status: Envelope<unknown>["provenance"]["status"]; staleAfterMs: number; revalidate?: number | false },
   ): Promise<Envelope<T[]>> {
-    const qs = new URLSearchParams();
-    for (const [k, v] of Object.entries(params)) qs.set(k, String(v));
-    const url = `${BASE}/${path}?${qs.toString()}`;
+    // OpenF1 (FastAPI) returns HTTP 500 when the "=" in operator keys like
+    // "date>=" is percent-encoded, so build the query string manually:
+    // encode "<"/">" in keys, never "="; values fully encoded.
+    const qs = Object.entries(params)
+      .map(([k, v]) => `${k.replace(/=$/, "").replace(/>/g, "%3E").replace(/</g, "%3C")}=${encodeURIComponent(String(v))}`)
+      .join("&");
+    const url = `${BASE}/${path}?${qs}`;
     let raw: unknown;
     try {
       raw = await fetchJson<unknown>(url, {
@@ -222,7 +226,9 @@ export class OpenF1Provider implements F1DataProvider {
     };
     if (q.dateStart) params["date>="] = q.dateStart;
     if (q.dateEnd) params["date<"] = q.dateEnd;
-    const env = await this.get("car_data", openF1CarDataSchema, params, { status: "historical", staleAfterMs: 3_600_000 });
+    // Recorded car data for a finished window is immutable: cache it (Data
+    // Cache on Vercel is shared across users, cutting OpenF1 rate pressure).
+    const env = await this.get("car_data", openF1CarDataSchema, params, { status: "historical", staleAfterMs: 3_600_000, revalidate: 300 });
     const data: CarDataSample[] = env.data.map((c) => ({
       driverNumber: c.driver_number, date: c.date, speed: c.speed, rpm: c.rpm,
       nGear: c.n_gear, throttle: c.throttle, brake: c.brake, drs: c.drs,
@@ -236,7 +242,7 @@ export class OpenF1Provider implements F1DataProvider {
     };
     if (q.dateStart) params["date>="] = q.dateStart;
     if (q.dateEnd) params["date<"] = q.dateEnd;
-    const env = await this.get("location", openF1LocationSchema, params, { status: "historical", staleAfterMs: 3_600_000 });
+    const env = await this.get("location", openF1LocationSchema, params, { status: "historical", staleAfterMs: 3_600_000, revalidate: 300 });
     const data: LocationPoint[] = env.data.map((l) => ({
       driverNumber: l.driver_number, date: l.date, x: l.x, y: l.y, z: l.z,
     }));

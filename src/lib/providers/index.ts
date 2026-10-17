@@ -3,7 +3,7 @@ import { OpenF1Provider } from "./openf1";
 import { DemoDataProvider } from "./demo";
 import type { F1DataProvider } from "./types";
 
-const openF1 = new OpenF1Provider(process.env.OPENF1_API_KEY);
+export const openF1 = new OpenF1Provider(process.env.OPENF1_API_KEY);
 const demo = new DemoDataProvider();
 
 export function getProvider(): F1DataProvider {

@@ -47,9 +47,9 @@ export function DriverAvatar({
 }
 
 export function DriverIdentity({
-  number, acronym, fullName, teamName, teamColour, headshotUrl, size = "standard", href, className,
+  acronym, fullName, teamName, teamColour, headshotUrl, size = "standard", href, className,
 }: {
-  number: number; acronym: string; fullName?: string; teamName?: string;
+  number?: number; acronym: string; fullName?: string; teamName?: string;
   teamColour?: string | null; headshotUrl?: string | null;
   size?: "compact" | "standard" | "featured"; href?: string | null; className?: string;
 }) {

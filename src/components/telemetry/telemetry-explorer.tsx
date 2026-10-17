@@ -62,7 +62,17 @@ export function TelemetryExplorer({
       const ds = [d1, d2].filter(Boolean).join(",");
       const res = await fetch(`/api/telemetry?session=${sessionKey}&lap=${lap}&drivers=${ds}`);
       if (!res.ok) throw new Error("telemetry request failed");
-      return res.json();
+      const data = (await res.json()) as TelemetryResponse;
+      // Flag sessions that provably have no recorded telemetry (laps exist,
+      // car/location channels empty) so the picker can label them honestly.
+      if (data.provenance?.status !== "unavailable") {
+        const empty = (x?: { points?: unknown[]; error?: string }) =>
+          x && !x.error && (x.points?.length ?? 0) === 0;
+        if (empty(data.drivers?.[String(d1)]) && (!d2 || empty(data.drivers?.[String(d2)]))) {
+          setNoTelemetrySessions((prev) => (prev.has(sessionKey) ? prev : new Set(prev).add(sessionKey)));
+        }
+      }
+      return data;
     },
     enabled: Boolean(sessionKey && d1 && lap),
     placeholderData: keepPreviousData,
@@ -70,6 +80,7 @@ export function TelemetryExplorer({
 
   const d1Data = query.data?.drivers?.[String(d1)];
   const d2Data = d2 ? query.data?.drivers?.[String(d2)] : undefined;
+  const [noTelemetrySessions, setNoTelemetrySessions] = useState<Set<number>>(new Set());
   const outline = (d1Data?.trackOutline ?? d2Data?.trackOutline ?? []) as { x: number; y: number; t?: number }[];
   const replayDrivers = [d1, d2]
     .filter((n): n is number => n != null)
@@ -96,7 +107,7 @@ export function TelemetryExplorer({
           >
             {sessions.map((s) => (
               <option key={s.sessionKey} value={s.sessionKey}>
-                {s.label} ({s.date})
+                {s.label} ({s.date}){noTelemetrySessions.has(s.sessionKey) ? " — no telemetry recorded" : ""}
               </option>
             ))}
           </select>
@@ -221,8 +232,10 @@ export function TelemetryExplorer({
               />
             ) : (
               <div className="p-8 text-center text-sm text-[var(--ink-3)]">
-                {d1Data?.error ?? d1Data?.demoNote ??
-                  "No recorded telemetry for this driver and lap. Try a different lap or session."}
+                {d1Data?.error === "unavailable"
+                  ? "Telemetry is temporarily unavailable from the provider (rate limited). Try again in a minute."
+                  : d1Data?.demoNote ?? d1Data?.error ??
+                    "No recorded telemetry for this driver and lap. Try a different lap or session."}
               </div>
             )}
           </section>
