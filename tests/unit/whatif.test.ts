@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { pointsFor, projectChampionship, type WhatIfDriver } from "@/lib/f1/whatif";
+import { countRemainingRounds, pointsFor, projectChampionship, type WhatIfDriver } from "@/lib/f1/whatif";
 
 const drv = (driverId: string, position: number, points: number): WhatIfDriver =>
   ({ driverId, familyName: driverId, code: null, position, points, constructorIds: [] });
@@ -62,5 +62,17 @@ describe("projectChampionship", () => {
     });
     expect(rows.find((r) => r.driverId === "b")!.projectedPoints).toBe(90);
     expect(rows.find((r) => r.driverId === "a")!.projectedPoints).toBe(100 + 15);
+  });
+});
+
+describe("countRemainingRounds", () => {
+  it("splits past and future rounds and detects sprint weekends", () => {
+    const rounds = [
+      { date: "2026-03-08", sessions: [{ name: "Race" }] },
+      { date: "2026-12-01", sessions: [{ name: "Sprint" }, { name: "Race" }] },
+      { date: "2026-12-08", sessions: [{ name: "Race" }] },
+    ];
+    const r = countRemainingRounds(rounds, new Date("2026-10-18T00:00:00Z"));
+    expect(r).toEqual({ races: 2, sprints: 1, completed: 1 });
   });
 });

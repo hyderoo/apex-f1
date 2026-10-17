@@ -1,5 +1,6 @@
 import { fetchConstructorStandings, fetchDriverStandings, fetchSeasonCalendar } from "@/lib/providers/jolpica";
 import { WhatIfPanel } from "@/components/standings/whatif-panel";
+import { countRemainingRounds } from "@/lib/f1/whatif";
 import { getCurrentDrivers } from "@/lib/f1/drivers";
 import { CountryFlag } from "@/components/identity/country-flag";
 import { TeamIdentity } from "@/components/identity/team-identity";
@@ -39,16 +40,7 @@ export default async function StandingsPage() {
   );
   // Remaining rounds (races + sprint sessions) from the Jolpica calendar.
   const calendar = await fetchSeasonCalendar(SEASON_YEAR).catch(() => null);
-  const nowMs = Date.now();
-  const remaining = { races: 0, sprints: 0, completed: 0 };
-  for (const round of calendar?.data ?? []) {
-    const done = new Date(round.date).getTime() <= nowMs;
-    if (done) remaining.completed++;
-    else {
-      remaining.races++;
-      if (round.sessions.some((sn) => /sprint/i.test(sn.name))) remaining.sprints++;
-    }
-  }
+  const remaining = countRemainingRounds(calendar?.data ?? []);
   return (
     <div>
       <PageHeader

@@ -72,3 +72,23 @@ export function projectChampionship(input: {
   });
   return rows;
 }
+
+/** Count remaining vs completed rounds (races and sprint sessions) from the
+ *  Jolpica calendar. `now` is injectable for tests; defaults to the current
+ *  time at call time. */
+export function countRemainingRounds(
+  rounds: { date: string; sessions: { name: string }[] }[],
+  now: Date = new Date(),
+): { races: number; sprints: number; completed: number } {
+  const nowMs = now.getTime();
+  const out = { races: 0, sprints: 0, completed: 0 };
+  for (const round of rounds) {
+    const done = new Date(round.date).getTime() <= nowMs;
+    if (done) out.completed++;
+    else {
+      out.races++;
+      if (round.sessions.some((sn) => /sprint/i.test(sn.name))) out.sprints++;
+    }
+  }
+  return out;
+}

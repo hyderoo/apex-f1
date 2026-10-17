@@ -1,0 +1,26 @@
+name: push-dispatch
+
+# Session notifications fire 15/30/60 min before a session starts, so the
+# daily Vercel Hobby cron is too coarse — this workflow pokes the dispatch
+# route every 15 minutes instead. Requires the CRON_SECRET repo secret
+# (same value as the Vercel env var).
+
+on:
+  schedule:
+    - cron: "*/15 * * * *"
+  workflow_dispatch:
+
+jobs:
+  dispatch:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger push dispatch
+        env:
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+        run: |
+          if [ -z "$CRON_SECRET" ]; then
+            echo "::warning::CRON_SECRET repo secret is not set; push dispatch cannot run."
+            exit 1
+          fi
+          curl -sfS -H "Authorization: Bearer $CRON_SECRET" \
+            https://apex-f1-murex.vercel.app/api/push/dispatch
