@@ -21,6 +21,12 @@ export async function GET(req: NextRequest) {
     drivers: drivers.envelope.data ?? [],
     stints: stints.envelope.data ?? [],
     pitStops: pits.envelope.data ?? [],
+    laps: (laps.envelope.data ?? []).map((l) => ({
+      driverNumber: l.driverNumber,
+      lapNumber: l.lapNumber,
+      lapDuration: l.lapDuration,
+      isPitOutLap: l.isPitOutLap,
+    })),
     lapCount: Math.max(0, ...(laps.envelope.data ?? []).map((l) => l.lapNumber)),
     provenance: {
       ...stints.envelope.provenance,

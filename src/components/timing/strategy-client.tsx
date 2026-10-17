@@ -8,11 +8,13 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { DataStatusBadge } from "@/components/ui/badge";
 import { Term } from "@/components/ui/tooltip-term";
 import { DriverAvatar } from "@/components/identity/driver-identity";
+import { DegradationPanel } from "@/components/timing/degradation-panel";
 
 interface StrategyResponse {
   drivers: Driver[];
   stints: Stint[];
   pitStops: PitStop[];
+  laps: { driverNumber: number; lapNumber: number; lapDuration: number | null; isPitOutLap: boolean }[];
   lapCount: number;
   provenance: { status: DataStatus; provider: string; retrievedAt: string };
 }
@@ -50,6 +52,7 @@ export function StrategyClient({ races }: { races: { sessionKey: number; label: 
 
       {isPending && <Skeleton className="h-96 w-full" />}
       {data && (
+        <div className="flex flex-col gap-px bg-[var(--line)]">
         <div className="panel">
           <div className="border-b border-[var(--line)] px-4 py-2.5">
             <span className="micro-label">
@@ -126,6 +129,8 @@ export function StrategyClient({ races }: { races: { sessionKey: number; label: 
           <div className="border-t border-[var(--line)] px-4 py-2 text-[10px] text-[var(--ink-3)]">
             Observed provider records only. Pit wall lines mark the recorded pit lap; hover for duration.
           </div>
+        </div>
+        <DegradationPanel drivers={data.drivers} stints={data.stints} pitStops={data.pitStops} laps={data.laps} />
         </div>
       )}
     </div>
