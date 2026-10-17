@@ -1,4 +1,4 @@
-import { fetchRaceResults } from "@/lib/providers/jolpica";
+import { fetchRaceResults, fetchQualifyingResults } from "@/lib/providers/jolpica";
 import { SEASON_YEAR } from "@/lib/f1/season";
 import { PageHeader } from "@/components/layout/page-header";
 import { PointsProgression } from "@/components/charts/points-progression";
@@ -9,7 +9,10 @@ export const metadata = { title: "Race Analysis" };
 export const dynamic = "force-dynamic";
 
 export default async function AnalysisPage() {
-  const results = await fetchRaceResults(SEASON_YEAR).catch(() => null);
+  const [results, qualifying] = await Promise.all([
+    fetchRaceResults(SEASON_YEAR).catch(() => null),
+    fetchQualifyingResults(SEASON_YEAR).catch(() => null),
+  ]);
   const rounds = [...new Set((results?.data ?? []).map((r) => r.round))].sort((a, b) => b - a);
   const latestRound = rounds[0];
   const latest = (results?.data ?? [])
@@ -32,6 +35,12 @@ export default async function AnalysisPage() {
           <RaceStory results={latest} />
         </section>
       )}
+      <section className="panel mb-px">
+        <div className="border-b border-[var(--line)] px-4 py-2.5">
+          <span className="micro-label">Teammate head-to-head · season to date</span>
+        </div>
+        <TeammateH2H results={results?.data ?? []} qualifying={qualifying?.data ?? []} />
+      </section>
       <div className="grid grid-cols-1 gap-px bg-[var(--line)] xl:grid-cols-2">
         <section className="panel">
           <div className="border-b border-[var(--line)] px-4 py-2.5">
@@ -124,6 +133,105 @@ function RaceStory({ results }: { results: RaceResultRow[] }) {
         Derived only from the recorded classification (Jolpica results API) —
         positions, grid slots, status and fastest-lap flag. No commentary or
         inferred events.
+      </p>
+    </div>
+  );
+}
+
+interface H2HRaceRow { round: number; position: number | null; driverId: string; constructorId: string; constructorName: string; status: string; givenName: string; familyName: string }
+interface H2HQualiRow { round: number; position: number | null; driverId: string; constructorId: string }
+
+/**
+ * Teammate head-to-head across the season from recorded classifications
+ * only: lower qualifying position wins the quali duel; in the race the
+ * classified finisher ahead wins, and rounds where a car is not classified
+ * still count if exactly one teammate is classified. Rounds with only one
+ * car entered, or neither classified, are excluded from the score.
+ */
+function TeammateH2H({ results, qualifying }: { results: H2HRaceRow[]; qualifying: H2HQualiRow[] }) {
+  const rounds = [...new Set(results.map((r) => r.round))].sort((a, b) => a - b);
+  const teams = new Map<string, { name: string; drivers: Map<string, { q: number; r: number }> }>();
+  const cell = (cid: string, cname: string, did: string) => {
+    if (!teams.has(cid)) teams.set(cid, { name: cname, drivers: new Map() });
+    const t = teams.get(cid)!;
+    if (!t.drivers.has(did)) t.drivers.set(did, { q: 0, r: 0 });
+    return t.drivers.get(did)!;
+  };
+
+  for (const round of rounds) {
+    const raceRows = results.filter((r) => r.round === round);
+    const qualiRows = qualifying.filter((q) => q.round === round);
+    const constructors = [...new Set(raceRows.map((r) => r.constructorId))];
+    for (const cid of constructors) {
+      const cname = raceRows.find((r) => r.constructorId === cid)?.constructorName ?? cid;
+      const pair = raceRows.filter((r) => r.constructorId === cid);
+      if (pair.length !== 2) continue; // one car entered this round — no duel
+      const [a, b] = pair;
+      // race duel: exactly one classified, or both classified and different positions
+      if (a.position != null && b.position != null && a.position !== b.position) {
+        cell(cid, cname, a.position < b.position ? a.driverId : b.driverId).r++;
+      } else if ((a.position == null) !== (b.position == null)) {
+        cell(cid, cname, (a.position != null ? a : b).driverId).r++;
+      }
+      // quali duel: both have a position and they differ
+      const qa = qualiRows.find((q) => q.constructorId === cid && q.driverId === a.driverId);
+      const qb = qualiRows.find((q) => q.constructorId === cid && q.driverId === b.driverId);
+      if (qa?.position != null && qb?.position != null && qa.position !== qb.position) {
+        cell(cid, cname, qa.position < qb.position ? a.driverId : b.driverId).q++;
+      } else {
+        // ensure both drivers appear even without a duel result
+        cell(cid, cname, a.driverId); cell(cid, cname, b.driverId);
+      }
+    }
+  }
+
+  const nameOf = (did: string) => {
+    const r = results.find((x) => x.driverId === did);
+    return r ? r.familyName : did;
+  };
+  const rows = [...teams.entries()].map(([cid, t]) => ({
+    cid, name: t.name,
+    drivers: [...t.drivers.entries()].sort((a, b) => (b[1].q + b[1].r) - (a[1].q + a[1].r)),
+  })).filter((t) => t.drivers.length === 2);
+
+  if (rows.length === 0) {
+    return <div className="px-4 py-6 text-center text-xs text-[var(--ink-3)]">No head-to-head data available yet.</div>;
+  }
+
+  return (
+    <div className="overflow-x-auto">
+      <table className="w-full min-w-[560px]">
+        <thead>
+          <tr className="border-b border-[var(--line)] text-left">
+            <th className="px-4 py-2 micro-label font-normal">Team</th>
+            <th className="px-2 py-2 micro-label font-normal">Qualifying</th>
+            <th className="px-2 py-2 micro-label font-normal">Race</th>
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map((t) => {
+            const [[da, sa], [db, sb]] = t.drivers;
+            return (
+              <tr key={t.cid} className="timing-row">
+                <td className="px-4 py-1.5 text-sm">{t.name}</td>
+                <td className="px-2 py-1.5 font-mono text-xs tnum">
+                  <span className="font-semibold">{nameOf(da)} {sa.q}</span>
+                  <span className="text-[var(--ink-3)]"> — {sb.q} {nameOf(db)}</span>
+                </td>
+                <td className="px-2 py-1.5 font-mono text-xs tnum">
+                  <span className="font-semibold">{nameOf(da)} {sa.r}</span>
+                  <span className="text-[var(--ink-3)]"> — {sb.r} {nameOf(db)}</span>
+                </td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+      <p className="border-t border-[var(--line)] px-4 py-2 text-[10px] leading-snug text-[var(--ink-3)]">
+        Recorded classifications only (Jolpica), Grands Prix. Qualifying duel: lower
+        recorded position. Race duel: classified finisher ahead; a round with exactly
+        one classified car counts for that car; rounds with one car entered or neither
+        car classified are excluded.
       </p>
     </div>
   );
