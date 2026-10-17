@@ -42,3 +42,35 @@ export function CountryFlag({
     </span>
   );
 }
+
+/** Flag from a provider-supplied URL (e.g. OpenF1 meeting country_flag). */
+export function FlagImage({
+  src, label, size = 20, className,
+}: {
+  src?: string | null; label: string; size?: number; className?: string;
+}) {
+  const [failed, setFailed] = useState(false);
+  if (!src || failed) {
+    return (
+      <span
+        role="img" aria-label={label} title={label}
+        className={cn("inline-block rounded-[2px] border border-[var(--line)] bg-[var(--surface-3)]", className)}
+        style={{ width: size * 1.4, height: size }}
+      />
+    );
+  }
+  return (
+    // eslint-disable-next-line @next/next/no-img-element -- small fixed-size flag
+    <img
+      src={src}
+      alt={label}
+      title={label}
+      width={Math.round(size * 1.4)}
+      height={size}
+      loading="lazy"
+      onError={() => setFailed(true)}
+      className={cn("rounded-[2px] border border-[var(--line)]", className)}
+      style={{ width: size * 1.4, height: size }}
+    />
+  );
+}

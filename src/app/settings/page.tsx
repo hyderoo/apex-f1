@@ -118,6 +118,13 @@ export default function SettingsPage() {
             UNAVAILABLE. A data health report is at{" "}
             <a href="/api/health" className="text-[var(--accent)] underline">/api/health</a>.
           </p>
+          <p className="mt-2 text-xs leading-relaxed text-[var(--ink-3)]">
+            Driver portraits and circuit imagery are hotlinked from URLs supplied
+            by the OpenF1 API (never re-hosted). Driver nationality flag images
+            are served by flagcdn.com — credit:{" "}
+            <a href="https://flagpedia.net" target="_blank" rel="noreferrer" className="text-[var(--accent)] underline">Flagpedia</a>.
+            Team identities are typographic marks by design; no licensed logo source is used.
+          </p>
         </section>
       </div>
     </div>

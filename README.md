@@ -18,6 +18,17 @@ provider lacks a capability, the UI says so instead of faking it. Distances on
 telemetry charts are documented approximations derived from recorded GPS points
 (`src/lib/telemetry/lap.ts`). Brake is a boolean pedal signal, not pressure.
 
+## Imagery & asset credits
+
+| Asset | Source | Terms |
+| --- | --- | --- |
+| Driver portraits, circuit imagery, host-country flags | F1 media CDN, URLs supplied by the OpenF1 API (`headshot_url`, `circuit_image`, `country_flag`) | Hotlinked from the provider-supplied URL only — never re-hosted, never constructed or guessed. Every image has a designed fallback (typographic monogram or code badge). |
+| Driver nationality flags | [flagcdn.com](https://flagpedia.net/download/api) | Free for embedding; credit link appreciated — flag images served by [Flagpedia](https://flagpedia.net). |
+| Team identities | Typographic word-marks rendered in CSS | No licensed programmatic source of team logos exists; intentional text marks instead of unofficial files. |
+
+Sourcing rules live in `src/lib/assets/manifest.ts`. No AI-generated or
+fabricated imagery; no scraped logos.
+
 ## Quick start
 
 ```bash

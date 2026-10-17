@@ -7,6 +7,7 @@ import type { SessionStatus } from "@/lib/domain/types";
 import { formatInTimeZone, formatLocalTime } from "@/lib/utils/time";
 import { usePrefs } from "@/components/preferences";
 import { Badge } from "@/components/ui/badge";
+import { FlagImage } from "@/components/identity/country-flag";
 import { cn } from "@/lib/utils/cn";
 
 type Filter = "all" | "upcoming" | "past";
@@ -81,6 +82,7 @@ export function CalendarClient({
                   {String(round).padStart(2, "0")}
                 </span>
               </div>
+              <FlagImage src={m.countryFlagUrl} label={m.countryName} size={18} className="shrink-0 self-start mt-1" />
               <div className="min-w-0 flex-1">
                 <div className="flex flex-wrap items-center gap-2">
                   <span className="text-base font-semibold">{m.name}</span>
@@ -109,6 +111,18 @@ export function CalendarClient({
                   track
                 </div>
               </div>
+              {m.circuitImageUrl && (
+                // eslint-disable-next-line @next/next/no-img-element -- small provider thumbnail
+                <img
+                  src={m.circuitImageUrl}
+                  alt={`${m.circuitShortName} circuit`}
+                  width={72}
+                  height={54}
+                  loading="lazy"
+                  className="hidden h-13.5 w-18 shrink-0 self-center rounded-[3px] border border-[var(--line)] object-cover md:block"
+                  style={{ width: 72, height: 54 }}
+                />
+              )}
               <span className="sr-only">Round {i + 1}</span>
             </Link>
           );

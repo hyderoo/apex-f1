@@ -7,6 +7,7 @@ import { SessionCountdown } from "@/components/dashboard/countdown";
 import { StandingsPreview } from "@/components/dashboard/standings-preview";
 import { DataStatusBadge } from "@/components/ui/badge";
 import { PageHeader } from "@/components/layout/page-header";
+import { CircuitHero } from "@/components/identity/circuit-hero";
 
 export const dynamic = "force-dynamic";
 
@@ -18,6 +19,10 @@ export default async function DashboardPage() {
   const next = upcoming[0] ?? null;
   const lastRace = finished.filter((s) => s.type === "Race")[0] ?? finished[0] ?? null;
   const focus = current ?? lastRace;
+  const featuredMeeting =
+    meetings.find((m) => m.sessions.some((s) => s.sessionKey === (current ?? next)?.sessionKey)) ??
+    meetings.find((m) => m.sessions.some((s) => s.sessionKey === lastRace?.sessionKey)) ??
+    null;
 
   const totalRounds = meetings.filter((m) => m.name !== "Pre-Season Testing").length;
   const doneRounds = meetings.filter(
@@ -33,6 +38,20 @@ export default async function DashboardPage() {
         status={provenance.status}
         updatedAt={provenance.retrievedAt}
       />
+
+      {featuredMeeting && (
+        <CircuitHero
+          eyebrow={current ? "Live now" : next ? "Next Grand Prix" : "Latest Grand Prix"}
+          name={featuredMeeting.name}
+          circuitShortName={featuredMeeting.circuitShortName}
+          location={featuredMeeting.location}
+          countryName={featuredMeeting.countryName}
+          countryFlagUrl={featuredMeeting.countryFlagUrl}
+          circuitImageUrl={featuredMeeting.circuitImageUrl}
+          href={`/calendar/${featuredMeeting.meetingKey}`}
+          cta={current ? "Open live timing" : "Event details"}
+        />
+      )}
 
       <div className="grid grid-cols-1 gap-px bg-[var(--line)] lg:grid-cols-3">
         {/* Session status */}
