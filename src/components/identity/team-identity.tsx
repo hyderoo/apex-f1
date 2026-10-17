@@ -36,7 +36,7 @@ export function TeamIdentity({
   const badge = teamBadge(name);
   return (
     <span className={cn("inline-flex items-center gap-2", className)} title={name}>
-      {badge ? <TeamBadge url={badge.url} name={name} px={px}>{mark}</TeamBadge> : mark}
+      {badge ? <TeamBadge url={badge.url} name={name} px={px} darkPlate={badge.darkPlate}>{mark}</TeamBadge> : mark}
       {size !== "compact" && <span className="truncate text-xs text-[var(--ink-2)]">{name}</span>}
     </span>
   );

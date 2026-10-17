@@ -6,11 +6,12 @@
  * Formula 1 league listing — each entry verified to be the CURRENT team
  * (not a defunct variant) and its badge URL confirmed 200 image/png.
  * If a team is missing or an image fails, TeamIdentity falls back to the
- * designed typographic mark.
+ * designed typographic mark. Badges marked darkPlate are white-on-transparent
+ * artwork; they render on a dark plate so they stay visible in light theme.
  */
-export const TEAM_BADGES: Record<string, { url: string; sourceName: string }> = {
+export const TEAM_BADGES: Record<string, { url: string; sourceName: string; darkPlate?: boolean }> = {
   "Alpine":          { url: "https://r2.thesportsdb.com/images/media/team/badge/ozhoj31740774899.png", sourceName: "BWT Alpine Formula One Team" },
-  "Aston Martin":    { url: "https://r2.thesportsdb.com/images/media/team/badge/ez5rlk1740774066.png", sourceName: "Aston Martin Aramco Formula One Team" },
+  "Aston Martin":    { url: "https://r2.thesportsdb.com/images/media/team/badge/ez5rlk1740774066.png", sourceName: "Aston Martin Aramco Formula One Team", darkPlate: true },
   "Audi":            { url: "https://r2.thesportsdb.com/images/media/team/badge/3uce6h1773158180.png", sourceName: "Audi Revolut F1 Team" },
   "Cadillac":        { url: "https://r2.thesportsdb.com/images/media/team/badge/2wqnjo1769429652.png", sourceName: "Cadillac Formula 1 Team" },
   "Ferrari":         { url: "https://r2.thesportsdb.com/images/media/team/badge/rxwsqv1420417429.png", sourceName: "Scuderia Ferrari HP" },

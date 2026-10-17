@@ -7,9 +7,9 @@ import { useState } from "react";
  * designed typographic mark passed as children. Never shows a broken image.
  */
 export function TeamBadge({
-  url, name, px, children,
+  url, name, px, darkPlate, children,
 }: {
-  url: string; name: string; px: number; children: React.ReactNode;
+  url: string; name: string; px: number; darkPlate?: boolean; children: React.ReactNode;
 }) {
   const [failed, setFailed] = useState(false);
   if (failed) return <>{children}</>;
@@ -21,7 +21,7 @@ export function TeamBadge({
       loading="lazy"
       onError={() => setFailed(true)}
       className="shrink-0 rounded-[3px] object-contain"
-      style={{ width: px, height: px }}
+      style={darkPlate ? { width: px, height: px, background: "#10151c", padding: Math.max(1, Math.round(px / 12)) } : { width: px, height: px }}
     />
   );
 }
