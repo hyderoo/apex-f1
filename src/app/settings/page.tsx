@@ -164,7 +164,10 @@ export default function SettingsPage() {
             by the OpenF1 API (never re-hosted). Driver nationality flag images
             are served by flagcdn.com — credit:{" "}
             <a href="https://flagpedia.net" target="_blank" rel="noreferrer" className="text-[var(--accent)] underline">Flagpedia</a>.
-            Team identities are typographic marks by design; no licensed logo source is used.
+            Team badges are hotlinked from{" "}
+            <a href="https://www.thesportsdb.com" target="_blank" rel="noreferrer" className="text-[var(--accent)] underline">TheSportsDB</a>
+            {" "}and used as-is (badges remain the teams&apos; trademarks); a designed typographic
+            mark is the fallback where no badge is available.
           </p>
         </section>
       </div>

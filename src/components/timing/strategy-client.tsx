@@ -49,7 +49,7 @@ export function StrategyClient({ races }: { races: { sessionKey: number; label: 
 
   return (
     <div className="px-4 py-4 md:px-6">
-      <div className="mb-4 flex items-center gap-3">
+      <div className="mb-4 flex flex-wrap items-center gap-3">
         <select
           value={sessionKey}
           onChange={(e) => pick(Number(e.target.value))}

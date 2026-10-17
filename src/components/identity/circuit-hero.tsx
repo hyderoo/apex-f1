@@ -31,7 +31,7 @@ export function CircuitHero({
           {eyebrow && <div className="micro-label">{eyebrow}</div>}
           <div className="text-lg font-bold tracking-tight md:text-xl">{name}</div>
           <div className="text-xs text-[var(--ink-3)]">
-            {circuitShortName} · {location}, {countryName}
+            {circuitShortName === location ? location : `${circuitShortName} · ${location}`}, {countryName}
           </div>
         </div>
         <div className="ml-auto flex items-center gap-3">{children}</div>
