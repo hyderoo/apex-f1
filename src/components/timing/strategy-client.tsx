@@ -2,6 +2,8 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { CopyLinkButton } from "@/components/ui/copy-link";
 import type { DataStatus, Driver, PitStop, Stint } from "@/lib/domain/types";
 import { compoundColor, formatDuration } from "@/lib/utils/format";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -20,7 +22,16 @@ interface StrategyResponse {
 }
 
 export function StrategyClient({ races }: { races: { sessionKey: number; label: string }[] }) {
-  const [sessionKey, setSessionKey] = useState(races[0]?.sessionKey);
+  const router = useRouter();
+  const sp = useSearchParams();
+  const fromUrl = Number(sp.get("session"));
+  const [sessionKey, setSessionKey] = useState(
+    races.some((r) => r.sessionKey === fromUrl) ? fromUrl : races[0]?.sessionKey,
+  );
+  const pick = (key: number) => {
+    setSessionKey(key);
+    router.replace(`/strategy?session=${key}`);
+  };
   const { data, isPending } = useQuery<StrategyResponse>({
     queryKey: ["strategy", sessionKey],
     queryFn: async () => {
@@ -40,7 +51,7 @@ export function StrategyClient({ races }: { races: { sessionKey: number; label: 
       <div className="mb-4 flex items-center gap-3">
         <select
           value={sessionKey}
-          onChange={(e) => setSessionKey(Number(e.target.value))}
+          onChange={(e) => pick(Number(e.target.value))}
           className="h-9 w-80 max-w-full border border-[var(--line)] bg-[var(--surface-2)] px-2 text-sm"
         >
           {races.map((r) => (
@@ -48,6 +59,7 @@ export function StrategyClient({ races }: { races: { sessionKey: number; label: 
           ))}
         </select>
         {data && <DataStatusBadge status={data.provenance.status} />}
+        <CopyLinkButton />
       </div>
 
       {isPending && <Skeleton className="h-96 w-full" />}

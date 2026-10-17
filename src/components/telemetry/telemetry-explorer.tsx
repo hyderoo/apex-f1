@@ -3,6 +3,7 @@
 import { useQuery, keepPreviousData } from "@tanstack/react-query";
 import { useRouter, useSearchParams } from "next/navigation";
 import { detectCorners, sectorBoundaryTimes } from "@/lib/telemetry/corners";
+import { CopyLinkButton } from "@/components/ui/copy-link";
 import { useEffect, useMemo, useState } from "react";
 import { TelemetryChart, type ChannelPoint } from "./telemetry-chart";
 import { TrackMap } from "./track-map";
@@ -216,6 +217,7 @@ export function TelemetryExplorer({
             </button>
           ))}
           {query.data && <DataStatusBadge status={query.data.provenance.status} />}
+          <CopyLinkButton />
         </div>
       </div>
 
