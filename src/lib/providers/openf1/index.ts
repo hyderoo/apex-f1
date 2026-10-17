@@ -5,6 +5,7 @@ import type {
   SessionStatus, Stint, TeamRadioClip, WeatherObservation,
 } from "@/lib/domain/types";
 import { fetchJson, HttpError, RateLimiter } from "@/lib/cache/http";
+import { DRIVER_NATIONALITY_2026 } from "@/lib/assets/manifest";
 import type {
   F1DataProvider, LapQuery, ProviderCapabilities, SessionQuery, TelemetryQuery,
 } from "../types";
@@ -145,7 +146,7 @@ export class OpenF1Provider implements F1DataProvider {
         driverNumber: d.driver_number, broadcastName: d.broadcast_name,
         fullName: d.full_name, firstName: d.first_name, lastName: d.last_name,
         acronym: d.name_acronym, teamName: d.team_name, teamColour: d.team_colour,
-        headshotUrl: d.headshot_url, countryCode: d.country_code,
+        headshotUrl: d.headshot_url, countryCode: d.country_code ?? DRIVER_NATIONALITY_2026[d.driver_number] ?? null,
       });
     }
     return { ...env, data: [...seen.values()] };

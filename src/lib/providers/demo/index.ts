@@ -3,6 +3,7 @@ import type {
   F1DataProvider, LapQuery, ProviderCapabilities, SessionQuery, TelemetryQuery,
 } from "../types";
 import { sessionStatus } from "../openf1";
+import { DRIVER_NATIONALITY_2026 } from "@/lib/assets/manifest";
 
 /**
  * DemoDataProvider: serves a bundled snapshot of REAL historical OpenF1 data
@@ -93,7 +94,7 @@ export class DemoDataProvider implements F1DataProvider {
       fullName: d.full_name ?? "", firstName: d.first_name ?? "",
       lastName: d.last_name ?? "", acronym: d.name_acronym ?? "",
       teamName: d.team_name ?? "", teamColour: d.team_colour ?? "8a8f98",
-      headshotUrl: d.headshot_url ?? null, countryCode: d.country_code ?? null,
+      headshotUrl: d.headshot_url ?? null, countryCode: d.country_code ?? DRIVER_NATIONALITY_2026[d.driver_number] ?? null,
     }))));
   }
 

@@ -103,6 +103,7 @@ export function buildLeaderboard(input: {
     const retired = false;
 
     return {
+      headshotUrl: d.headshotUrl ?? null,
       position: pos?.position ?? null,
       driverNumber: dn,
       acronym: d.acronym,

@@ -196,6 +196,7 @@ export interface LeaderboardRow {
   driverNumber: number;
   acronym: string;
   fullName: string;
+  headshotUrl: string | null;
   teamName: string;
   teamColour: string;
   lastLap: number | null;

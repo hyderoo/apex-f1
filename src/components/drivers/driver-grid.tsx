@@ -5,6 +5,8 @@ import { useState } from "react";
 import { Star } from "lucide-react";
 import type { Driver } from "@/lib/domain/types";
 import { hexToRgba } from "@/lib/utils/format";
+import { DriverAvatar } from "@/components/identity/driver-identity";
+import { CountryFlag } from "@/components/identity/country-flag";
 import { usePrefs } from "@/components/preferences";
 import { cn } from "@/lib/utils/cn";
 
@@ -40,10 +42,7 @@ export function DriverGrid({ drivers }: { drivers: Driver[] }) {
             </button>
             <Link href={`/drivers/${d.driverNumber}`} className="block">
               <div className="flex items-center gap-3">
-                <span
-                  className="h-10 w-1"
-                  style={{ background: hexToRgba(`#${d.teamColour.replace("#", "")}`) }}
-                />
+                <DriverAvatar src={d.headshotUrl} acronym={d.acronym} teamColour={d.teamColour} size={56} />
                 <div>
                   <div className="font-mono text-2xl font-bold tnum leading-none">
                     {d.driverNumber}
@@ -52,11 +51,15 @@ export function DriverGrid({ drivers }: { drivers: Driver[] }) {
                     {d.acronym}
                   </div>
                 </div>
+                <span className="ml-auto self-start"><CountryFlag alpha3={d.countryCode} size={16} /></span>
               </div>
               <div className="mt-3 text-base font-semibold leading-tight">
                 {d.firstName} <span className="uppercase">{d.lastName}</span>
               </div>
-              <div className="mt-0.5 text-xs text-[var(--ink-3)]">{d.teamName}</div>
+              <div className="mt-0.5 flex items-center gap-1.5 text-xs text-[var(--ink-3)]">
+                <span className="inline-block h-2.5 w-2.5 rounded-[2px]" style={{ background: hexToRgba(`#${d.teamColour.replace("#", "")}`) }} />
+                {d.teamName}
+              </div>
             </Link>
           </div>
         ))}

@@ -7,6 +7,7 @@ import { formatGap, formatLapTime, formatSector, formatSpeed, compoundColor } fr
 import { isStale, relativeAge } from "@/lib/utils/time";
 import { DataStatusBadge } from "@/components/ui/badge";
 import { TimingTowerSkeleton } from "@/components/ui/skeleton";
+import { DriverAvatar } from "@/components/identity/driver-identity";
 import { Term } from "@/components/ui/tooltip-term";
 import { usePrefs } from "@/components/preferences";
 import { hexToRgba } from "@/lib/utils/format";
@@ -207,7 +208,8 @@ function TimingRow({
             className="inline-block h-4 w-1"
             style={{ background: hexToRgba(r.teamColour.startsWith("#") ? r.teamColour : `#${r.teamColour}`) }}
           />
-          <span className="font-mono text-[13px] font-semibold">{r.acronym}</span>
+          <DriverAvatar src={r.headshotUrl} acronym={r.acronym} teamColour={r.teamColour} size={22} />
+          <span className="font-mono text-[13px] font-semibold" title={r.fullName}>{r.acronym}</span>
           <span className="hidden text-[11px] text-[var(--ink-3)] lg:inline">{r.teamName}</span>
         </div>
       </td>

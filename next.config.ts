@@ -13,6 +13,7 @@ const nextConfig: NextConfig = {
     remotePatterns: [
       { protocol: "https", hostname: "media.formula1.com" },
       { protocol: "https", hostname: "api.multiviewer.app" },
+      { protocol: "https", hostname: "flagcdn.com" },
     ],
   },
 };
