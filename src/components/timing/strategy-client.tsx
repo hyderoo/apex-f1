@@ -11,6 +11,7 @@ import { DataStatusBadge } from "@/components/ui/badge";
 import { Term } from "@/components/ui/tooltip-term";
 import { DriverAvatar } from "@/components/identity/driver-identity";
 import { DegradationPanel } from "@/components/timing/degradation-panel";
+import { UndercutPanel } from "@/components/timing/undercut-panel";
 import { DragScroll } from "@/components/ui/drag-scroll";
 
 interface StrategyResponse {
@@ -144,6 +145,7 @@ export function StrategyClient({ races }: { races: { sessionKey: number; label: 
           </div>
         </div>
         <DegradationPanel drivers={data.drivers} stints={data.stints} pitStops={data.pitStops} laps={data.laps} />
+        <UndercutPanel drivers={data.drivers} pitStops={data.pitStops} laps={data.laps} />
         </div>
       )}
     </div>
