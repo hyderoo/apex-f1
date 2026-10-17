@@ -1,5 +1,7 @@
 # APEX F1 — Every Lap. Every Detail. Live.
 
+[![CI](https://github.com/hyderoo/apex-f1/actions/workflows/ci.yml/badge.svg)](https://github.com/hyderoo/apex-f1/actions/workflows/ci.yml)
+
 A live Formula 1 intelligence dashboard for the **2026 FIA Formula One World Championship**.
 Timing tower, telemetry lab, tyre strategy, race control, weather, standings and
 season calendar — built on real, attributable data with every panel labelled by
@@ -125,6 +127,28 @@ pnpm lint
 pnpm build        # production build
 pnpm test:e2e     # Playwright (requires `pnpm playwright install chromium`)
 ```
+
+### CI & test report
+
+Every push to `main` and every pull request runs the full gate in
+[GitHub Actions](.github/workflows/ci.yml): ESLint, strict `tsc`, the vitest
+unit suite, a production build, and the Playwright end-to-end suite against
+the built app (Chromium). The badge above reflects the latest `main` run.
+
+Latest local verification on `main`:
+
+| Suite | Result |
+| --- | --- |
+| ESLint | clean, 0 warnings |
+| `tsc --noEmit` (strict) | clean |
+| vitest | 48/48 passed |
+| `pnpm build` | succeeded |
+| Playwright e2e | 10/10 passed (Chromium) |
+
+The e2e suite covers the critical flows: dashboard render, season calendar,
+standings, driver and team pages with image fallbacks, telemetry lab,
+strategy, live/historical/demo labelling, the search palette, favorites, and
+the app running without optional provider credentials.
 
 ## Deployment (Vercel)
 

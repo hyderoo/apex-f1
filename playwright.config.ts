@@ -13,4 +13,12 @@ export default defineConfig({
     viewport: { width: 1440, height: 900 },
   },
   projects: [{ name: "chromium", use: { browserName: "chromium" } }],
+  webServer: process.env.E2E_BASE_URL
+    ? undefined
+    : {
+        command: "pnpm start -p 3100",
+        url: "http://localhost:3100",
+        reuseExistingServer: !process.env.CI,
+        timeout: 120_000,
+      },
 });
