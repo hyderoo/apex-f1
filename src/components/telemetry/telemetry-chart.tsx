@@ -2,7 +2,9 @@
 
 import * as echarts from "echarts";
 import { useEffect, useRef } from "react";
+import { Download } from "lucide-react";
 import { usePrefs } from "@/components/preferences";
+import { useToast } from "@/components/ui/toast";
 
 export interface ChannelPoint {
   t: number;
@@ -42,12 +44,15 @@ export function TelemetryChart({
   delta?: { distance: number; delta: number }[];
 }) {
   const ref = useRef<HTMLDivElement>(null);
+  const chartRef = useRef<echarts.ECharts | null>(null);
   const { prefs } = usePrefs();
+  const toast = useToast();
   const channels = CHANNELS.filter((c) => prefs.telemetryChannels.includes(c.id));
 
   useEffect(() => {
     if (!ref.current) return;
     const chart = echarts.init(ref.current, undefined, { renderer: "canvas" });
+    chartRef.current = chart;
     const isDark = document.documentElement.classList.contains("dark");
     const ink3 = isDark ? "#666d7a" : "#79808d";
     const line = isDark ? "#23262e" : "#d9d6cf";
@@ -160,10 +165,30 @@ export function TelemetryChart({
     return () => {
       window.removeEventListener("resize", onResize);
       chart.dispose();
+      chartRef.current = null;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [a, b, aLabel, bLabel, aColor, bColor, delta, prefs.telemetryChannels]);
 
   const height = Math.max(320, (channels.length + (delta && delta.length ? 1 : 0)) * 120);
-  return <div ref={ref} style={{ height }} className="w-full" role="img" aria-label="Telemetry chart" />;
+  return (
+    <div className="relative">
+      <div ref={ref} style={{ height }} className="w-full" role="img" aria-label="Telemetry chart" />
+      <button
+        onClick={() => {
+          const url = chartRef.current?.getDataURL({ type: "png", pixelRatio: 2, backgroundColor: "#0b0c0f" });
+          if (!url) return;
+          const a = document.createElement("a");
+          a.href = url;
+          a.download = "apex-f1-telemetry.png";
+          a.click();
+          toast("Chart exported as PNG", "success");
+        }}
+        className="absolute right-2 top-2 flex items-center gap-1 border border-[var(--line)] bg-[var(--surface-2)] px-2 py-1 text-[10px] uppercase tracking-wider text-[var(--ink-3)] hover:text-[var(--ink)]"
+        aria-label="Export chart as PNG"
+      >
+        <Download size={11} /> PNG
+      </button>
+    </div>
+  );
 }

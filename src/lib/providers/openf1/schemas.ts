@@ -67,9 +67,9 @@ export const openF1LapSchema = z.object({
   i2_speed: nullableNumber,
   st_speed: nullableNumber,
   is_pit_out_lap: z.boolean().optional().default(false),
-  segments_sector_1: z.array(z.number().nullable()).optional().default([]),
-  segments_sector_2: z.array(z.number().nullable()).optional().default([]),
-  segments_sector_3: z.array(z.number().nullable()).optional().default([]),
+  segments_sector_1: z.array(z.number().nullable()).nullable().optional().default([]),
+  segments_sector_2: z.array(z.number().nullable()).nullable().optional().default([]),
+  segments_sector_3: z.array(z.number().nullable()).nullable().optional().default([]),
 });
 
 export const openF1StintSchema = z.object({

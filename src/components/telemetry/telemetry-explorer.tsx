@@ -2,7 +2,7 @@
 
 import { useQuery, keepPreviousData } from "@tanstack/react-query";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { TelemetryChart, type ChannelPoint } from "./telemetry-chart";
 import { TrackMap } from "./track-map";
 import { DataStatusBadge } from "@/components/ui/badge";
@@ -21,7 +21,7 @@ interface TelemetryResponse {
       brakingZones: { startDistance: number; endDistance: number }[];
       gearChanges: { distance: number; from: number; to: number }[];
     };
-    trackOutline?: { x: number; y: number }[];
+    trackOutline?: { x: number; y: number; t?: number }[];
     lapTime?: number | null;
     error?: string;
     demoNote?: string | null;
@@ -69,7 +69,11 @@ export function TelemetryExplorer({
 
   const d1Data = query.data?.drivers?.[String(d1)];
   const d2Data = d2 ? query.data?.drivers?.[String(d2)] : undefined;
-  const outline = (d1Data?.trackOutline ?? d2Data?.trackOutline ?? []) as { x: number; y: number }[];
+  const outline = (d1Data?.trackOutline ?? d2Data?.trackOutline ?? []) as { x: number; y: number; t?: number }[];
+  const replayDrivers = [d1, d2]
+    .filter((n): n is number => n != null)
+    .map((n) => ({ n, pts: (query.data?.drivers?.[String(n)]?.trackOutline ?? []).filter((p) => p.t != null) as { t: number; x: number; y: number }[] }))
+    .filter((d) => d.pts.length > 10);
   const colorOf = (n: number) => `#${(drivers.find((d) => d.driverNumber === n)?.teamColour ?? "8a8f98").replace("#", "")}`;
   const acronymOf = (n: number) => drivers.find((d) => d.driverNumber === n)?.acronym ?? String(n);
 
@@ -237,6 +241,23 @@ export function TelemetryExplorer({
                 </p>
               </div>
             </section>
+            {replayDrivers.length > 0 && (
+              <section className="panel">
+                <div className="border-b border-[var(--line)] px-4 py-2.5">
+                  <span className="micro-label">Lap replay · recorded positions</span>
+                </div>
+                <div className="p-3">
+                  <LapReplay
+                    drivers={replayDrivers.map((d) => ({ points: d.pts, color: colorOf(d.n), label: acronymOf(d.n) }))}
+                  />
+                  <p className="mt-2 text-[10px] leading-snug text-[var(--ink-3)]">
+                    Markers interpolate only between recorded GPS points of this
+                    lap. Playback is time-synced across drivers; it is not a
+                    simulation.
+                  </p>
+                </div>
+              </section>
+            )}
             <section className="panel">
               <div className="border-b border-[var(--line)] px-4 py-2.5">
                 <span className="micro-label">Derived metrics</span>
@@ -273,6 +294,75 @@ export function TelemetryExplorer({
           </div>
         </div>
       )}
+    </div>
+  );
+}
+
+/** Position of a driver at time t, linearly interpolated between recorded points. */
+function posAt(points: { t: number; x: number; y: number }[], t: number) {
+  if (t <= points[0].t) return points[0];
+  const last = points[points.length - 1];
+  if (t >= last.t) return last;
+  let lo = 0, hi = points.length - 1;
+  while (hi - lo > 1) {
+    const mid = (lo + hi) >> 1;
+    if (points[mid].t <= t) lo = mid; else hi = mid;
+  }
+  const a = points[lo], b = points[hi];
+  const f = (t - a.t) / Math.max(1, b.t - a.t);
+  return { t, x: a.x + (b.x - a.x) * f, y: a.y + (b.y - a.y) * f };
+}
+
+function LapReplay({ drivers }: { drivers: { points: { t: number; x: number; y: number }[]; color: string; label: string }[] }) {
+  const maxT = Math.max(...drivers.map((d) => d.points[d.points.length - 1].t));
+  const [t, setT] = useState(0);
+  const [playing, setPlaying] = useState(false);
+  const [speed, setSpeed] = useState(20);
+  useEffect(() => {
+    if (!playing) return;
+    const id = setInterval(() => {
+      setT((cur) => {
+        const next = cur + speed * 100;
+        if (next >= maxT) { setPlaying(false); return maxT; }
+        return next;
+      });
+    }, 100);
+    return () => clearInterval(id);
+  }, [playing, speed, maxT]);
+
+  const outline = drivers[0].points;
+  const markers = drivers.map((d) => {
+    const p = posAt(d.points, Math.min(t, d.points[d.points.length - 1].t));
+    return { x: p.x, y: p.y, color: d.color, label: d.label };
+  });
+  const fmt = (ms: number) => `${Math.floor(ms / 60000)}:${String(Math.floor((ms % 60000) / 1000)).padStart(2, "0")}.${String(Math.floor((ms % 1000) / 100))}`;
+
+  return (
+    <div>
+      <TrackMap outline={outline} markers={markers} />
+      <div className="mt-2 flex items-center gap-2">
+        <button
+          onClick={() => { if (!playing && t >= maxT) setT(0); setPlaying(!playing); }}
+          className="border border-[var(--line)] bg-[var(--surface-2)] px-3 py-1 text-[11px] uppercase tracking-wider hover:text-[var(--accent)]"
+          aria-label={playing ? "Pause replay" : "Play replay"}
+        >
+          {playing ? "Pause" : "Play"}
+        </button>
+        <input
+          type="range" min={0} max={maxT} value={t} step={50}
+          onChange={(e) => { setPlaying(false); setT(Number(e.target.value)); }}
+          className="h-1 flex-1 cursor-pointer accent-[var(--accent)]"
+          aria-label="Replay position"
+        />
+        <span className="font-mono text-[11px] tnum text-[var(--ink-2)]">{fmt(t)} / {fmt(maxT)}</span>
+        <select
+          value={speed} onChange={(e) => setSpeed(Number(e.target.value))}
+          className="border border-[var(--line)] bg-[var(--surface-2)] px-1 py-0.5 text-[11px]"
+          aria-label="Replay speed"
+        >
+          {[5, 10, 20, 40].map((v) => <option key={v} value={v}>{v}×</option>)}
+        </select>
+      </div>
     </div>
   );
 }

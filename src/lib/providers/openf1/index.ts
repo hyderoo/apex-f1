@@ -144,8 +144,8 @@ export class OpenF1Provider implements F1DataProvider {
       lapDuration: l.lap_duration, durationSector1: l.duration_sector_1,
       durationSector2: l.duration_sector_2, durationSector3: l.duration_sector_3,
       i1Speed: l.i1_speed, i2Speed: l.i2_speed, stSpeed: l.st_speed,
-      isPitOutLap: l.is_pit_out_lap, segmentsSector1: l.segments_sector_1,
-      segmentsSector2: l.segments_sector_2, segmentsSector3: l.segments_sector_3,
+      isPitOutLap: l.is_pit_out_lap, segmentsSector1: l.segments_sector_1 ?? [],
+      segmentsSector2: l.segments_sector_2 ?? [], segmentsSector3: l.segments_sector_3 ?? [],
     }));
     return { ...env, data };
   }

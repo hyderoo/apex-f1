@@ -22,7 +22,7 @@ export function Topbar() {
     const onKey = (e: KeyboardEvent) => {
       const target = e.target as HTMLElement;
       const typing = target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.isContentEditable;
-      if (e.key === "/" && !typing) {
+      if ((e.key === "/" && !typing) || (e.key.toLowerCase() === "k" && (e.metaKey || e.ctrlKey))) {
         e.preventDefault();
         setSearchOpen(true);
       }
