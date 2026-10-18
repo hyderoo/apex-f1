@@ -4,5 +4,10 @@
       "path": "/api/cron/sync",
       "schedule": "0 0 * * *"
     }
-  ]
+  ],
+  "git": {
+    "deploymentEnabled": {
+      "gh-pages": false
+    }
+  }
 }
