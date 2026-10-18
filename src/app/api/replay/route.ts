@@ -2,7 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { openF1 } from "@/lib/providers";
 import { resolveSession } from "@/lib/f1/session-data";
 import {
-  REPLAY_MAX_DRIVERS, replayT0, toReplayPoints, type ReplayDriverTrack,
+  extractLapOutline, REPLAY_MAX_DRIVERS, replayT0, smoothClosedLap, toReplayPoints,
+  type ReplayDriverTrack,
 } from "@/lib/f1/replay";
 
 export const dynamic = "force-dynamic";
@@ -87,6 +88,18 @@ export async function GET(req: NextRequest) {
     driverNumber: r.driverNumber, points: toReplayPoints(r.points, t0),
   }));
 
+  // Circuit outline: one clean full-circuit lap from the densest driver's
+  // FULL-density trace (the downsampled replay tracks only carry ~85 samples
+  // per lap, far too polygonal), denoised with a loop-aware moving average.
+  // Only recorded points are used — smoothing denoises, it does not invent.
+  let outline: [number, number][] = [];
+  const densest = [...raw].sort((a, b) => b.points.length - a.points.length)[0];
+  if (densest) {
+    const fullDensity = toReplayPoints(densest.points, t0, Number.MAX_SAFE_INTEGER);
+    const lap = smoothClosedLap(extractLapOutline(fullDensity, 800), 7);
+    outline = lap.map(([, x, y]) => [Math.round(x * 10) / 10, Math.round(y * 10) / 10]);
+  }
+
   // Driver metadata for labels/colours and the picker. Non-fatal if the
   // provider call fails — tracks still carry driverNumber.
   let drivers: { driverNumber: number; acronym: string; fullName: string; teamColour: string | null }[] = [];
@@ -104,6 +117,7 @@ export async function GET(req: NextRequest) {
       t0: new Date(t0).toISOString(),
       tracks,
       drivers,
+      outline,
       unavailableDrivers: failures,
       note: "Downsampled from recorded OpenF1 location data (~4 Hz raw). Positions are interpolated between samples; gaps in a driver's recording mean the car is hidden, not guessed.",
     },

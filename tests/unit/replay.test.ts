@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
-  extractLapOutline, formatRaceClock, positionAt, replayDuration, replayT0, toReplayPoints,
+  catmullRomClosedPath, extractLapOutline, formatRaceClock, positionAt, replayDuration,
+  replayT0, smoothClosedLap, toReplayPoints,
 } from "@/lib/f1/replay";
 import type { LocationPoint } from "@/lib/domain/types";
 
@@ -93,3 +94,42 @@ describe("extractLapOutline", () => {
     const xs = out.map((p) => p[1]);
     expect(Math.max(...xs) - Math.min(...xs)).toBeGreaterThan(1000);
   });
+
+describe("smoothClosedLap", () => {
+  it("denoises jitter while keeping the loop's span and closure", () => {
+    // Noisy circle
+    const pts: [number, number, number][] = Array.from({ length: 120 }, (_, i) => {
+      const a = (i / 120) * Math.PI * 2;
+      const jitter = (i % 2 === 0 ? 1 : -1) * 20;
+      return [i, Math.cos(a) * (1000 + jitter), Math.sin(a) * (1000 + jitter)];
+    });
+    const out = smoothClosedLap(pts, 7);
+    expect(out).toHaveLength(120);
+    // Jitter reduced: radial deviation from 1000 shrinks
+    const dev = (p: [number, number, number][]) => p.reduce((s, [, x, y]) => s + Math.abs(Math.hypot(x, y) - 1000), 0) / p.length;
+    expect(dev(out)).toBeLessThan(dev(pts) / 2);
+    // Span preserved within jitter bounds (no shrink to a point)
+    const xs = out.map((p) => p[1]);
+    expect(Math.max(...xs) - Math.min(...xs)).toBeGreaterThan(1800);
+  });
+
+  it("returns short inputs unchanged", () => {
+    const pts: [number, number, number][] = [[0, 0, 0], [1, 1, 1]];
+    expect(smoothClosedLap(pts)).toEqual(pts);
+  });
+});
+
+describe("catmullRomClosedPath", () => {
+  it("passes through every point and closes", () => {
+    const d = catmullRomClosedPath([{ x: 0, y: 0 }, { x: 100, y: 0 }, { x: 100, y: 100 }, { x: 0, y: 100 }]);
+    expect(d.startsWith("M0.0,0.0")).toBe(true);
+    expect(d.endsWith("Z")).toBe(true);
+    expect((d.match(/C/g) ?? []).length).toBe(4);
+    expect(d).toContain("100.0,0.0"); // passes through corner
+  });
+
+  it("handles degenerate inputs", () => {
+    expect(catmullRomClosedPath([])).toBe("");
+    expect(catmullRomClosedPath([{ x: 1, y: 2 }])).toBe("M1.0,2.0 Z");
+  });
+});

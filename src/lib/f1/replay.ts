@@ -160,3 +160,50 @@ function decimate(points: ReplayPoint[], max: number): ReplayPoint[] {
   if (out[out.length - 1] !== last) out.push(last);
   return out;
 }
+
+/**
+ * Loop-aware moving average over a closed lap. Denoises recorded GPS jitter
+ * using only recorded points — the window wraps around the loop so the ends
+ * blend cleanly. Window is the full neighborhood size (odd numbers keep the
+ * centre point centred).
+ */
+export function smoothClosedLap(points: ReplayPoint[], window = 7): ReplayPoint[] {
+  const n = points.length;
+  if (n < 5 || window < 3) return points;
+  const w = window % 2 === 0 ? window + 1 : window;
+  const half = Math.floor(w / 2);
+  const out: ReplayPoint[] = new Array(n);
+  for (let i = 0; i < n; i++) {
+    let sx = 0, sy = 0;
+    for (let k = -half; k <= half; k++) {
+      const p = points[(i + k + n) % n];
+      sx += p[1]; sy += p[2];
+    }
+    out[i] = [points[i][0], sx / w, sy / w];
+  }
+  return out;
+}
+
+/**
+ * Closed Catmull-Rom spline through the given points as an SVG path (cubic
+ * béziers). The curve passes through every input point — interpolating
+ * recorded data, never inventing geometry.
+ */
+export function catmullRomClosedPath(pts: { x: number; y: number }[]): string {
+  const n = pts.length;
+  if (n === 0) return "";
+  if (n < 3) return pts.map((p, i) => `${i === 0 ? "M" : "L"}${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(" ") + " Z";
+  let d = `M${pts[0].x.toFixed(1)},${pts[0].y.toFixed(1)}`;
+  for (let i = 0; i < n; i++) {
+    const p0 = pts[(i - 1 + n) % n];
+    const p1 = pts[i];
+    const p2 = pts[(i + 1) % n];
+    const p3 = pts[(i + 2) % n];
+    const c1x = p1.x + (p2.x - p0.x) / 6;
+    const c1y = p1.y + (p2.y - p0.y) / 6;
+    const c2x = p2.x - (p3.x - p1.x) / 6;
+    const c2y = p2.y - (p3.y - p1.y) / 6;
+    d += ` C${c1x.toFixed(1)},${c1y.toFixed(1)} ${c2x.toFixed(1)},${c2y.toFixed(1)} ${p2.x.toFixed(1)},${p2.y.toFixed(1)}`;
+  }
+  return d + " Z";
+}

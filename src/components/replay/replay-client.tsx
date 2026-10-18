@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Pause, Play } from "lucide-react";
 import { fitTrack } from "@/lib/telemetry/track";
 import {
-  extractLapOutline, formatRaceClock, positionAt, replayDuration, REPLAY_MAX_DRIVERS,
+  catmullRomClosedPath, formatRaceClock, positionAt, replayDuration, REPLAY_MAX_DRIVERS,
   type ReplayDriverTrack,
 } from "@/lib/f1/replay";
 
@@ -14,6 +14,7 @@ interface ReplayData {
   t0: string;
   tracks: ReplayDriverTrack[];
   drivers: DriverMeta[];
+  outline: [number, number][];
   unavailableDrivers: number[];
   note: string;
 }
@@ -85,25 +86,20 @@ export function ReplayClient({ races }: { races: RaceOption[] }) {
     return () => cancelAnimationFrame(rafRef.current);
   }, [playing, speed, duration]);
 
-  // Track outline: one clean lap from the densest recorded track (a full
-  // race trace is many laps + pit excursions and renders as a scribble).
-  const outline = useMemo(() => {
-    if (!data || data.tracks.length === 0) return null;
-    const densest = [...data.tracks].sort((a, b) => b.points.length - a.points.length)[0];
-    return extractLapOutline(densest.points);
-  }, [data]);
+  // Track outline: one clean full-circuit lap, extracted and denoised
+  // server-side from the densest driver's full-density recorded trace.
+  const outline = data?.outline?.length ? data.outline : null;
 
   const projection = useMemo(() => {
     if (!outline) return null;
-    return fitTrack(outline.map(([, x, y]) => ({ x, y, z: 0, date: "", driverNumber: 0 })), 800, 600);
+    return fitTrack(outline.map(([x, y]) => ({ x, y, z: 0, date: "", driverNumber: 0 })), 800, 600);
   }, [outline]);
 
   const outlinePath = useMemo(() => {
     if (!projection || !outline) return null;
-    return outline.map(([, x, y], i) => {
-      const q = projection.project(x, y);
-      return `${i === 0 ? "M" : "L"}${q.x.toFixed(1)},${q.y.toFixed(1)}`;
-    }).join(" ") + " Z";
+    // Closed Catmull-Rom through the recorded (smoothed) points — the curve
+    // interpolates recorded data, it does not invent geometry.
+    return catmullRomClosedPath(outline.map(([x, y]) => projection.project(x, y)));
   }, [projection, outline]);
 
   const allDrivers = data?.drivers ?? [];
