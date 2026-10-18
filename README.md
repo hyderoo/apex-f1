@@ -7,6 +7,12 @@ Timing tower, telemetry lab, tyre strategy, race control, weather, standings,
 season calendar, a data health monitor and race analysis — built on real, attributable data with every panel labelled by
 its provenance: **LIVE · DELAYED · HISTORICAL · DEMO DATA · UNAVAILABLE**.
 
+## Screenshots
+
+| Season dashboard | Telemetry lab | Race replay |
+| --- | --- | --- |
+| ![Season dashboard](docs/screenshots/dashboard.png) | ![Telemetry lab](docs/screenshots/telemetry.png) | ![Race replay](docs/screenshots/race-replay.png) |
+
 ## Data sources & honesty model
 
 | Source | Used for | Access |
