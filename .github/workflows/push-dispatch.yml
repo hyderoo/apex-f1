@@ -4,6 +4,12 @@ name: push-dispatch
 # daily Vercel Hobby cron is too coarse — this workflow pokes the dispatch
 # route every 15 minutes instead. Requires the CRON_SECRET repo secret
 # (same value as the Vercel env var).
+#
+# Until the deployment is fully configured (repo secret + Vercel VAPID keys
+# + migration 0002) runs skip with a warning, not a failure — an unfinished
+# setup is expected, and 96 red runs a day would just be noise. Once
+# configured, any non-2xx from the route fails loudly: that is a real
+# problem (route down, wrong secret, dispatch error).
 
 on:
   schedule:
@@ -19,8 +25,17 @@ jobs:
           CRON_SECRET: ${{ secrets.CRON_SECRET }}
         run: |
           if [ -z "$CRON_SECRET" ]; then
-            echo "::warning::CRON_SECRET repo secret is not set; push dispatch cannot run."
-            exit 1
+            echo "::warning::CRON_SECRET repo secret is not set; push dispatch is inert until the README setup is done."
+            exit 0
           fi
-          curl -sfS -H "Authorization: Bearer $CRON_SECRET" \
-            https://apex-f1-murex.vercel.app/api/push/dispatch
+          code=$(curl -sS -o /tmp/dispatch-body.json -w '%{http_code}' \
+            -H "Authorization: Bearer $CRON_SECRET" \
+            https://apex-f1-murex.vercel.app/api/push/dispatch)
+          cat /tmp/dispatch-body.json
+          if [ "$code" = "503" ] && grep -q 'not configured' /tmp/dispatch-body.json; then
+            echo "::warning::Push is not fully configured on the deployment yet (VAPID keys / Supabase migration pending); skipping."
+            exit 0
+          fi
+          if [ "${code#2}" != "$code" ]; then exit 0; fi
+          echo "::error::Dispatch failed with HTTP $code"
+          exit 1
