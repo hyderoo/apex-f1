@@ -23,7 +23,11 @@ export async function POST(req: NextRequest) {
   const { VAPID_PRIVATE_KEY, VAPID_SUBJECT } = getServerEnv();
   const publicKey = publicEnv.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
   if (!publicKey || !VAPID_PRIVATE_KEY) {
-    return NextResponse.json({ error: "push not configured" }, { status: 503 });
+    const missing = [
+      ...(!publicKey ? ["NEXT_PUBLIC_VAPID_PUBLIC_KEY"] : []),
+      ...(!VAPID_PRIVATE_KEY ? ["VAPID_PRIVATE_KEY"] : []),
+    ];
+    return NextResponse.json({ error: "push not configured", missing }, { status: 503 });
   }
   const sb = getSupabaseServiceRole();
   if (!sb) return NextResponse.json({ error: "supabase not configured" }, { status: 503 });

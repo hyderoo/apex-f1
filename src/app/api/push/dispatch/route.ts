@@ -30,8 +30,12 @@ export async function GET(req: NextRequest) {
   }
   const publicKey = publicEnv.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
   if (!publicKey || !VAPID_PRIVATE_KEY) {
+    const missing = [
+      ...(!publicKey ? ["NEXT_PUBLIC_VAPID_PUBLIC_KEY"] : []),
+      ...(!VAPID_PRIVATE_KEY ? ["VAPID_PRIVATE_KEY"] : []),
+    ];
     return NextResponse.json(
-      { error: "push not configured", detail: "Set NEXT_PUBLIC_VAPID_PUBLIC_KEY and VAPID_PRIVATE_KEY." },
+      { error: "push not configured", detail: "Set NEXT_PUBLIC_VAPID_PUBLIC_KEY and VAPID_PRIVATE_KEY.", missing },
       { status: 503 },
     );
   }
