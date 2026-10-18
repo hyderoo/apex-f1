@@ -221,12 +221,35 @@ export function NotificationsSection() {
                   {prefs.favoriteCircuits.length === 0 && " (star a circuit first)"}
                 </span>
               </label>
-              <button
-                onClick={disable} disabled={busy}
-                className="border border-[var(--line-2)] px-3 py-1 text-xs hover:bg-[var(--surface-3)] disabled:opacity-50"
-              >
-                Turn off notifications
-              </button>
+              <div className="flex flex-wrap gap-2">
+                <button
+                  onClick={async () => {
+                    setBusy(true);
+                    try {
+                      const res = await fetch("/api/push/test", {
+                        method: "POST",
+                        headers: { "content-type": "application/json" },
+                        body: JSON.stringify({ endpoint: subscription.endpoint }),
+                      });
+                      const body = await res.json().catch(() => ({}));
+                      if (res.ok) toast("Test notification sent — it should arrive within seconds", "success");
+                      else toast(body?.error ?? `Test failed (HTTP ${res.status})`, "error");
+                    } finally {
+                      setBusy(false);
+                    }
+                  }}
+                  disabled={busy}
+                  className="border border-[var(--accent)] px-3 py-1 text-xs text-[var(--accent)] hover:bg-[var(--surface-3)] disabled:opacity-50"
+                >
+                  Send a test notification
+                </button>
+                <button
+                  onClick={disable} disabled={busy}
+                  className="border border-[var(--line-2)] px-3 py-1 text-xs hover:bg-[var(--surface-3)] disabled:opacity-50"
+                >
+                  Turn off notifications
+                </button>
+              </div>
             </>
           )}
         </div>
