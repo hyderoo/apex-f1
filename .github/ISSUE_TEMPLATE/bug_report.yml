@@ -1,0 +1,33 @@
+name: Bug report
+description: Something on the dashboard is wrong or broken
+title: "[Bug]: "
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: Thanks for reporting. The app runs on real OpenF1/Jolpica data, so provider hiccups happen - a screenshot and the page URL help a lot.
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      placeholder: What did you see, and what did you expect instead?
+    validations:
+      required: true
+  - type: input
+    id: page-url
+    attributes:
+      label: Page URL
+      placeholder: https://apex-f1-murex.vercel.app/...
+  - type: dropdown
+    id: device
+    attributes:
+      label: Device
+      options:
+        - Desktop
+        - Mobile
+        - Both
+  - type: textarea
+    id: extra
+    attributes:
+      label: Anything else
+      placeholder: Console errors, time of day, race/session you were viewing...

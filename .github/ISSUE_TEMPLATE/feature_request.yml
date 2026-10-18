@@ -1,0 +1,17 @@
+name: Feature request
+description: Suggest an idea for APEX F1
+title: "[Feature]: "
+labels: [enhancement]
+body:
+  - type: textarea
+    id: idea
+    attributes:
+      label: The idea
+      placeholder: What should the app do, and what problem does it solve for you?
+    validations:
+      required: true
+  - type: textarea
+    id: data
+    attributes:
+      label: Data source (if you know it)
+      placeholder: The app builds on OpenF1 and Jolpica (Ergast-compatible). Bonus points if you know the data exists there.
