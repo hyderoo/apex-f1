@@ -1,7 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
-  formatRaceClock, positionAt, replayDuration, replayT0, toReplayPoints,
-  REPLAY_MAX_POINTS,
+  extractLapOutline, formatRaceClock, positionAt, replayDuration, replayT0, toReplayPoints,
 } from "@/lib/f1/replay";
 import type { LocationPoint } from "@/lib/domain/types";
 
@@ -62,3 +61,35 @@ describe("replayDuration / replayT0 / formatRaceClock", () => {
     expect(formatRaceClock(3661)).toBe("1:01:01");
   });
 });
+
+describe("extractLapOutline", () => {
+  it("cuts the trace at the first return near the start", () => {
+    // Fake circuit: 100 points out, then back near the start at t=90.
+    const pts: [number, number, number][] = [];
+    for (let i = 0; i <= 100; i++) pts.push([i * 0.9, Math.sin(i / 100 * Math.PI * 2) * 1000, Math.cos(i / 100 * Math.PI * 2) * 1000]);
+    // second lap (should be cut off)
+    for (let i = 0; i <= 100; i++) pts.push([90 + i * 0.9, Math.sin(i / 100 * Math.PI * 2) * 1000, Math.cos(i / 100 * Math.PI * 2) * 1000]);
+    const out = extractLapOutline(pts);
+    expect(out.length).toBeLessThan(pts.length);
+    expect(out[out.length - 1][0]).toBeLessThanOrEqual(91);
+  });
+
+  it("falls back gracefully on short or unclosed traces", () => {
+    const short: [number, number, number][] = [[0, 0, 0], [10, 5, 5]];
+    expect(extractLapOutline(short)).toEqual(short);
+    const straight: [number, number, number][] = Array.from({ length: 500 }, (_, i) => [i, i * 10, 0]);
+    expect(extractLapOutline(straight).length).toBeGreaterThan(0);
+  });
+});
+
+  it("ignores a closed pit-lane sliver and picks the full-circuit lap", () => {
+    const pts: [number, number, number][] = [];
+    // Recon: out the pit lane and back in 90s — closed but nearly collinear.
+    for (let i = 0; i <= 40; i++) pts.push([i, i * 100, i * 2]);
+    for (let i = 40; i <= 80; i++) pts.push([i, (80 - i) * 100, (80 - i) * 2]);
+    // Real lap: full circle of radius 1000, closed after ~90s.
+    for (let i = 0; i <= 100; i++) pts.push([100 + i * 0.9, Math.sin(i / 100 * Math.PI * 2) * 1000, Math.cos(i / 100 * Math.PI * 2) * 1000]);
+    const out = extractLapOutline(pts);
+    const xs = out.map((p) => p[1]);
+    expect(Math.max(...xs) - Math.min(...xs)).toBeGreaterThan(1000);
+  });

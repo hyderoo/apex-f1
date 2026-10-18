@@ -95,3 +95,68 @@ export function formatRaceClock(seconds: number): string {
   const mm = h > 0 ? String(m).padStart(2, "0") : String(m);
   return `${h > 0 ? `${h}:` : ""}${mm}:${String(sec).padStart(2, "0")}`;
 }
+
+/**
+ * Extract one clean lap loop from a track for drawing the circuit outline.
+ * A full race trace (many laps + pit-lane excursions + gap chords) renders
+ * as a scribble, so we find a closed lap: a run of points that returns near
+ * its start after 60-300s. The trace also contains recon laps that leave
+ * the pits and come straight back (closed, but a sliver), so candidates are
+ * scored by bounding-box size and the widest loop wins — a real lap spans
+ * the whole circuit.
+ */
+export function extractLapOutline(points: ReplayPoint[], maxPoints = 600): ReplayPoint[] {
+  if (points.length < 50) return points;
+  let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+  for (const [, x, y] of points) {
+    if (x < minX) minX = x; if (x > maxX) maxX = x;
+    if (y < minY) minY = y; if (y > maxY) maxY = y;
+  }
+  const diag = Math.hypot(maxX - minX, maxY - minY);
+  if (diag === 0) return points.slice(0, 60);
+
+  const closeLap = (fromIdx: number): ReplayPoint[] | null => {
+    const [t0, x0, y0] = points[fromIdx];
+    for (let i = fromIdx + 30; i < points.length; i++) {
+      const [t, x, y] = points[i];
+      const elapsed = t - t0;
+      if (elapsed > 300) return null; // no closure within 5 min — not a lap
+      if (elapsed >= 60 && Math.hypot(x - x0, y - y0) < diag * 0.03) {
+        return points.slice(fromIdx, i + 1);
+      }
+    }
+    return null;
+  };
+  const bboxDiag = (lap: ReplayPoint[]): number => {
+    let a = Infinity, b = -Infinity, c = Infinity, d = -Infinity;
+    for (const [, x, y] of lap) {
+      if (x < a) a = x; if (x > b) b = x;
+      if (y < c) c = y; if (y > d) d = y;
+    }
+    return Math.hypot(b - a, d - c);
+  };
+
+  // Candidate starts spread over the trace; a full-circuit lap has the
+  // largest bounding box. Pit-lane slivers score near zero.
+  let best: ReplayPoint[] | null = null;
+  let bestScore = diag * 0.5; // must span at least half the circuit
+  const step = Math.max(1, Math.floor(points.length / 25));
+  for (let i = 0; i < points.length - 30; i += step) {
+    const lap = closeLap(i);
+    if (!lap || lap.length < 30) continue;
+    const score = bboxDiag(lap);
+    if (score > bestScore) { best = lap; bestScore = score; }
+  }
+  if (best) return decimate(best, maxPoints);
+  return decimate(points.slice(0, 200), maxPoints);
+}
+
+function decimate(points: ReplayPoint[], max: number): ReplayPoint[] {
+  if (points.length <= max) return points;
+  const stride = Math.ceil(points.length / max);
+  const out: ReplayPoint[] = [];
+  for (let i = 0; i < points.length; i += stride) out.push(points[i]);
+  const last = points[points.length - 1];
+  if (out[out.length - 1] !== last) out.push(last);
+  return out;
+}

@@ -87,11 +87,23 @@ export async function GET(req: NextRequest) {
     driverNumber: r.driverNumber, points: toReplayPoints(r.points, t0),
   }));
 
+  // Driver metadata for labels/colours and the picker. Non-fatal if the
+  // provider call fails — tracks still carry driverNumber.
+  let drivers: { driverNumber: number; acronym: string; fullName: string; teamColour: string | null }[] = [];
+  try {
+    const env = await openF1.drivers({ sessionKey: session.sessionKey });
+    drivers = (env.data ?? []).map((d) => ({
+      driverNumber: d.driverNumber, acronym: d.acronym, fullName: d.fullName,
+      teamColour: d.teamColour || null,
+    }));
+  } catch { /* labels fall back to car numbers */ }
+
   return NextResponse.json(
     {
       session,
       t0: new Date(t0).toISOString(),
       tracks,
+      drivers,
       unavailableDrivers: failures,
       note: "Downsampled from recorded OpenF1 location data (~4 Hz raw). Positions are interpolated between samples; gaps in a driver's recording mean the car is hidden, not guessed.",
     },
