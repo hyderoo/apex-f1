@@ -165,7 +165,9 @@ pnpm test:e2e     # Playwright (requires `pnpm playwright install chromium`)
 Every push to `main` and every pull request runs the full gate in
 [GitHub Actions](.github/workflows/ci.yml): ESLint, strict `tsc`, the vitest
 unit suite, a production build, and the Playwright end-to-end suite against
-the built app (Chromium). The badge above reflects the latest `main` run.
+the built app (Chromium). The badge above reflects the latest `main` run,
+and the full Playwright HTML report from that run is published at
+<https://hyderoo.github.io/apex-f1/>.
 
 Latest local verification on `main`:
 
