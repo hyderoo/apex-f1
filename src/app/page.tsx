@@ -17,11 +17,11 @@ export default async function DashboardPage() {
   const { live, upcoming, finished } = sessionsByStatus(allSessions);
   const current = live[0] ?? null;
   const next = upcoming[0] ?? null;
-  const lastRace = finished.filter((s) => s.type === "Race")[0] ?? finished[0] ?? null;
-  const focus = current ?? lastRace;
+  const latestFinished = finished[0] ?? null;
+  const focus = current ?? latestFinished;
   const featuredMeeting =
     meetings.find((m) => m.sessions.some((s) => s.sessionKey === (current ?? next)?.sessionKey)) ??
-    meetings.find((m) => m.sessions.some((s) => s.sessionKey === lastRace?.sessionKey)) ??
+    meetings.find((m) => m.sessions.some((s) => s.sessionKey === latestFinished?.sessionKey)) ??
     null;
 
   const totalRounds = meetings.filter((m) => m.name !== "Pre-Season Testing").length;
@@ -76,13 +76,13 @@ export default async function DashboardPage() {
             ) : (
               <p className="text-sm text-[var(--ink-3)]">Season complete — no upcoming sessions.</p>
             )}
-            {lastRace && !current && (
+            {latestFinished && !current && (
               <p className="mt-4 border-t border-[var(--line)] pt-3 text-xs text-[var(--ink-3)]">
                 Latest completed:{" "}
-                <Link href={`/live?session=${lastRace.sessionKey}`} className="text-[var(--accent)] hover:underline">
-                  {lastRace.location} {lastRace.name}
+                <Link href={`/live?session=${latestFinished.sessionKey}`} className="text-[var(--accent)] hover:underline">
+                  {latestFinished.location} {latestFinished.name}
                 </Link>{" "}
-                ({lastRace.dateStart.slice(0, 10)}) — historical timing shown below.
+                ({latestFinished.dateStart.slice(0, 10)}) — historical timing shown below.
               </p>
             )}
           </div>

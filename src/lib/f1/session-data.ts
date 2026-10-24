@@ -12,7 +12,7 @@ export async function resolveSession(sessionKey?: number | null): Promise<Sessio
   const live = sessions.find((s) => s.status === "live");
   if (live) return live;
   const finished = sessions
-    .filter((s) => s.status === "finished" && s.type === "Race")
+    .filter((s) => s.status === "finished")
     .sort((a, b) => b.dateStart.localeCompare(a.dateStart));
   return finished[0] ?? null;
 }

@@ -4,6 +4,17 @@ All notable changes to APEX F1 are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project uses
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Fixed
+
+- **Session context during a race weekend**: the dashboard focus, "Latest
+  completed" link, live-timing default and every no-key API route
+  (leaderboard, weather, race control, strategy, telemetry, replay) now
+  resolve to the latest finished session of any type, so once Friday practice
+  is done the app follows the current weekend (e.g. Austin Practice 2)
+  instead of the previous round's race.
+
 ## [1.0.0] - 2026-10-18
 
 First tagged release. The app is live at <https://apex-f1-murex.vercel.app>.

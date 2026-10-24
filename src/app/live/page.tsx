@@ -19,7 +19,7 @@ export default async function LivePage({
   const { live, finished } = sessionsByStatus(sessions);
   const selected = session
     ? sessions.find((s) => s.sessionKey === Number(session))
-    : (live[0] ?? finished.filter((s) => s.type === "Race")[0] ?? finished[0]);
+    : (live[0] ?? finished[0]);
   return (
     <div>
       <PageHeader
