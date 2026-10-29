@@ -20,6 +20,8 @@ const mono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://apexf1.web.id"),
+  alternates: { canonical: "/" },
   title: {
     default: "APEX F1 — Every Lap. Every Detail. Live.",
     template: "%s — APEX F1",

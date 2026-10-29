@@ -9,5 +9,18 @@
     "deploymentEnabled": {
       "gh-pages": false
     }
-  }
+  },
+  "redirects": [
+    {
+      "source": "/:path*",
+      "has": [
+        {
+          "type": "host",
+          "value": "apex-f1-murex.vercel.app"
+        }
+      ],
+      "destination": "https://apexf1.web.id/:path*",
+      "permanent": true
+    }
+  ]
 }
